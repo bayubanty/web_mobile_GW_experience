@@ -1043,6 +1043,419 @@ footer {
 @media (max-width: 992px) {
   .detail-hero {
     grid-template-columns: 1fr;
+
+/* ===============================
+Mobile Navigation & Layout
+=============================== */
+
+/* Mobile Header & Navigation */
+.mobile-header-controls {
+  display: none;
+  padding: 10px;
+  background: #6fb353;
+  border-bottom: 1px solid #5a9445;
+}
+
+.mobile-nav-toggle,
+.mobile-filter-toggle {
+  background: #f48810;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.mobile-nav-toggle:hover,
+.mobile-filter-toggle:hover {
+  background: #d9740e;
+}
+
+/* Mobile Navigation Slide-out */
+.mobile-nav-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.mobile-nav-panel {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100%;
+  background: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  transition: left 0.3s ease;
+  z-index: 1001;
+  overflow-y: auto;
+}
+
+.mobile-nav-panel.active {
+  left: 0;
+}
+
+.mobile-nav-header {
+  background: #6fb353;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-nav-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.mobile-nav-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-links {
+  padding: 20px;
+}
+
+.mobile-nav-links a {
+  display: block;
+  padding: 12px 0;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+}
+
+.mobile-nav-links a:hover {
+  color: #6fb353;
+}
+
+.mobile-nav-links .donate-btn {
+  background: #f48810;
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+  margin-top: 10px;
+  border: none;
+}
+
+/* Mobile Filter Slide-out */
+.mobile-filter-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.mobile-filter-panel {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100%;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  transition: right 0.3s ease;
+  z-index: 1001;
+  overflow-y: auto;
+}
+
+.mobile-filter-panel.active {
+  right: 0;
+}
+
+.mobile-filter-header {
+  background: #6fb353;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-filter-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.mobile-filter-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-filter-content {
+  padding: 20px;
+}
+
+/* Mobile Map Placement */
+.mobile-map-section {
+  display: none;
+  margin: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-map-section h2 {
+  background-color: #6fb353;
+  color: white;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 12px;
+  margin: 0;
+}
+
+#mobileMainMap {
+  width: 100%;
+  height: 300px;
+}
+
+/* Mobile Layout Adjustments */
+@media (max-width: 767px) {
+  /* Hide desktop sidebar and map column */
+  .sidebar,
+  .map-column {
+    display: none;
+  }
+  
+  /* Show mobile controls */
+  .mobile-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Show mobile map */
+  .mobile-map-section {
+    display: block;
+  }
+  
+  /* Adjust main content grid for mobile */
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0;
+    padding: 0 10px;
+  }
+  
+  /* Mobile header adjustments */
+  .top-nav {
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px 0;
+  }
+  
+  .logo {
+    justify-content: center;
+  }
+  
+  .nav-links {
+    display: none; /* Hide desktop nav on mobile */
+  }
+  
+  .header-content {
+    padding: 15px 0;
+  }
+  
+  .header-content h1 {
+    font-size: 24px;
+  }
+  
+  .header-content p {
+    font-size: 16px;
+  }
+  
+  /* Mobile table adjustments */
+  .results-table {
+    display: block;
+    overflow-x: auto;
+    font-size: 14px;
+  }
+  
+  .results-table th,
+  .results-table td {
+    padding: 8px 10px;
+    min-width: 80px;
+  }
+  
+  .results-table th:nth-child(2),
+  .results-table td:nth-child(2) {
+    min-width: 150px;
+  }
+  
+  /* Mobile button adjustments */
+  .details-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .toggle-detail,
+  .view-full-detail {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  /* Mobile search section */
+  .search-section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .sort-select-label {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  /* Mobile footer */
+  .footer-links {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  /* Detail page mobile adjustments */
+  .detail-topbar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .detail-topbar h1 {
+    font-size: 1.3rem;
+    order: -1;
+  }
+  
+  .detail-hero {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 15px 10px;
+  }
+  
+  .hero-card {
+    padding: 12px;
+  }
+  
+  .metrics-wrap {
+    padding: 0 10px 20px;
+  }
+  
+  .metric-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 992px) {
+  .main-content {
+    grid-template-columns: 240px 1fr 280px;
+  }
+  
+  .sidebar {
+    width: 240px;
+  }
+  
+  .mobile-header-controls,
+  .mobile-map-section {
+    display: none;
+  }
+}
+
+/* Prevent body scroll when mobile panels are open */
+body.mobile-nav-open,
+body.mobile-filter-open {
+  overflow: hidden;
+}
+
+/* Mobile filter content styling */
+.mobile-filter-content .view-toggle,
+.mobile-filter-content .location-search,
+.mobile-filter-content details,
+.mobile-filter-content .filter-actions {
+  margin-bottom: 20px;
+}
+
+.mobile-filter-content .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-filter-content .view-buttons {
+  flex-direction: column;
+}
+
+.mobile-filter-content .toggle-btn {
+  width: 100%;
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 767px) {
+  button,
+  a,
+  input,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .toggle-detail,
+  .view-full-detail {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+     
   }
 }
 
