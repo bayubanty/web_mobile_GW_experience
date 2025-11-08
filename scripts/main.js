@@ -513,5 +513,276 @@ function showErrorPopup(message) {
     popup.classList.remove("visible");
     setTimeout(() => popup.remove(), 400);
   }, 4000);
+
+  // ===============================
+// Mobile Navigation & Filter Functions
+// ===============================
+
+function initMobileUI() {
+  // Create mobile header controls
+  createMobileHeaderControls();
+  
+  // Create mobile navigation panel
+  createMobileNavigationPanel();
+  
+  // Create mobile filter panel
+  createMobileFilterPanel();
+  
+  // Create mobile map section
+  createMobileMapSection();
+  
+  // Initialize mobile event listeners
+  initMobileEventListeners();
+}
+
+function createMobileHeaderControls() {
+  const header = document.querySelector('header');
+  const mobileControls = document.createElement('div');
+  mobileControls.className = 'mobile-header-controls';
+  mobileControls.innerHTML = `
+    <button class="mobile-nav-toggle">
+      <span>☰</span> Menu
+    </button>
+    <button class="mobile-filter-toggle">
+      <span>🔍</span> Filters & Search
+    </button>
+  `;
+  
+  header.parentNode.insertBefore(mobileControls, header.nextSibling);
+}
+
+function createMobileNavigationPanel() {
+  const navPanel = document.createElement('div');
+  navPanel.className = 'mobile-nav-overlay';
+  navPanel.innerHTML = `
+    <div class="mobile-nav-panel">
+      <div class="mobile-nav-header">
+        <h3>Navigation</h3>
+        <button class="mobile-nav-close">×</button>
+      </div>
+      <div class="mobile-nav-links">
+        <a href="index.html">Rankings</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="https://georgiawatch.org/about/">About Us</a>
+        <a href="https://georgiawatch.org/support-us/donate/" class="donate-btn">Donate</a>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(navPanel);
+}
+
+function createMobileFilterPanel() {
+  const filterPanel = document.createElement('div');
+  filterPanel.className = 'mobile-filter-overlay';
+  filterPanel.innerHTML = `
+    <div class="mobile-filter-panel">
+      <div class="mobile-filter-header">
+        <h3>Filters & Search</h3>
+        <button class="mobile-filter-close">×</button>
+      </div>
+      <div class="mobile-filter-content">
+        ${document.querySelector('.sidebar').innerHTML}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(filterPanel);
+}
+
+function createMobileMapSection() {
+  const mainContent = document.querySelector('.main-content');
+  const mapSection = document.createElement('section');
+  mapSection.className = 'mobile-map-section';
+  mapSection.innerHTML = `
+    <h2>HOSPITAL LOCATIONS</h2>
+    <div id="mobileMainMap"></div>
+  `;
+  mainContent.parentNode.insertBefore(mapSection, mainContent);
+}
+
+function initMobileEventListeners() {
+  // Mobile navigation toggle
+  document.querySelector('.mobile-nav-toggle')?.addEventListener('click', toggleMobileNavigation);
+  document.querySelector('.mobile-nav-close')?.addEventListener('click', toggleMobileNavigation);
+  document.querySelector('.mobile-nav-overlay')?.addEventListener('click', function(e) {
+    if (e.target === this) toggleMobileNavigation();
+  });
+
+  // Mobile filter toggle
+  document.querySelector('.mobile-filter-toggle')?.addEventListener('click', toggleMobileFilters);
+  document.querySelector('.mobile-filter-close')?.addEventListener('click', toggleMobileFilters);
+  document.querySelector('.mobile-filter-overlay')?.addEventListener('click', function(e) {
+    if (e.target === this) toggleMobileFilters();
+  });
+
+  // Transfer filter functionality to mobile panel
+  transferFilterFunctionality();
+}
+
+function toggleMobileNavigation() {
+  const body = document.body;
+  const overlay = document.querySelector('.mobile-nav-overlay');
+  const panel = document.querySelector('.mobile-nav-panel');
+  
+  body.classList.toggle('mobile-nav-open');
+  overlay.style.display = body.classList.contains('mobile-nav-open') ? 'block' : 'none';
+  panel.classList.toggle('active');
+}
+
+function toggleMobileFilters() {
+  const body = document.body;
+  const overlay = document.querySelector('.mobile-filter-overlay');
+  const panel = document.querySelector('.mobile-filter-panel');
+  
+  body.classList.toggle('mobile-filter-open');
+  overlay.style.display = body.classList.contains('mobile-filter-open') ? 'block' : 'none';
+  panel.classList.toggle('active');
+}
+
+function transferFilterFunctionality() {
+  // This function ensures mobile filter buttons work the same as desktop
+  const mobileFilterContent = document.querySelector('.mobile-filter-content');
+  
+  if (mobileFilterContent) {
+    // Reattach event listeners for mobile filter buttons
+    const applyFiltersBtn = mobileFilterContent.querySelector('#applyFiltersBtn');
+    const resetFiltersBtn = mobileFilterContent.querySelector('#resetFiltersBtn');
+    const applyLocationBtn = mobileFilterContent.querySelector('#applyLocationBtn');
+    const viewSystemsBtn = mobileFilterContent.querySelector('#viewSystemsBtn');
+    const viewIndividualsBtn = mobileFilterContent.querySelector('#viewIndividualsBtn');
+    const filterCriticalBtn = mobileFilterContent.querySelector('#filterCriticalBtn');
+    const filterAcuteBtn = mobileFilterContent.querySelector('#filterAcuteBtn');
+    const sortSelect = mobileFilterContent.querySelector('#sortSelect');
+
+    if (applyFiltersBtn) {
+      applyFiltersBtn.addEventListener('click', function() {
+        applyAllFilters();
+        toggleMobileFilters(); // Close panel after applying
+      });
+    }
+
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener('click', function() {
+        // Reset will be handled by the existing function
+        setTimeout(() => {
+          toggleMobileFilters(); // Close panel after resetting
+        }, 100);
+      });
+    }
+
+    if (applyLocationBtn) {
+      applyLocationBtn.addEventListener('click', function() {
+        applyAllFilters();
+        toggleMobileFilters(); // Close panel after applying
+      });
+    }
+
+    // Add other mobile filter event listeners as needed...
+  }
+}
+
+// Initialize mobile map
+let mobileMap = null;
+let mobileMapMarkers = [];
+
+function initMobileMap(data) {
+  const mapDiv = document.getElementById('mobileMainMap');
+  if (!mapDiv) return;
+
+  if (!mobileMap) {
+    mobileMap = L.map('mobileMainMap').setView([32.7, -83.4], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(mobileMap);
+  }
+
+  updateMobileMapMarkers(data);
+}
+
+function updateMobileMapMarkers(data) {
+  // Clear old markers
+  mobileMapMarkers.forEach(marker => mobileMap.removeLayer(marker));
+  mobileMapMarkers = [];
+
+  if (data.length === 0) return;
+
+  // Add new markers
+  data.forEach(hospital => {
+    let lat = parseFloat(hospital.Latitude);
+    let lon = parseFloat(hospital.Longitude);
+
+    // If no coordinates, approximate from ZIP code
+    if ((!lat || !lon) && hospital.Zip) {
+      [lat, lon] = getZipCoords(hospital.Zip);
+    }
+
+    if (!lat || !lon) return;
+
+    const grade = hospital.TIER_1_GRADE_Lown_Composite || 'N/A';
+    const stars = convertGradeToStars(grade);
+
+    const popupHTML = `
+      <div class="map-popup">
+        <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
+        ${hospital.City || ''}, ${hospital.State || ''}<br>
+        <div class="star-rating">${renderStars(stars.value)}</div>
+        <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
+          View Full Details
+        </a>
+      </div>
+    `;
+
+    const marker = L.marker([lat, lon]).addTo(mobileMap).bindPopup(popupHTML);
+    mobileMapMarkers.push(marker);
+  });
+
+  // Adjust map to fit all visible markers
+  if (mobileMapMarkers.length > 0) {
+    const group = L.featureGroup(mobileMapMarkers);
+    mobileMap.fitBounds(group.getBounds().pad(0.2));
+  }
+
+  // Ensure map is properly sized
+  setTimeout(() => {
+    mobileMap.invalidateSize();
+  }, 100);
+}
+
+// Update the existing data loading to initialize mobile UI
+document.addEventListener('DOMContentLoaded', function() {
+  // Your existing data loading code...
+  
+  // Initialize mobile UI after data is loaded
+  setTimeout(initMobileUI, 100);
+});
+
+// Update the renderHospitals function to also update mobile map
+function renderHospitals(data) {
+  // Your existing render code...
+  
+  // Update mobile map if it exists
+  if (mobileMap) {
+    updateMobileMapMarkers(data);
+  }
+}
+
+// Update the updateMapMarkers function to also update mobile map
+function updateMapMarkers(data) {
+  // Your existing map update code...
+  
+  // Update mobile map
+  if (mobileMap) {
+    updateMobileMapMarkers(data);
+  }
+}
+
+// Update the initHospitalMap function to also init mobile map
+function initHospitalMap(data) {
+  // Your existing map init code...
+  
+  // Initialize mobile map
+  initMobileMap(data);
+}
+  
 }
 
