@@ -1060,32 +1060,39 @@ INLINE STAR ALIGNMENT IN PREVIEW PANE
 Mobile Navigation & Layout
 =============================== */
 
-/* Mobile Header & Navigation */
+/* Mobile Header Controls - MOVED BELOW HEADER */
 .mobile-header-controls {
     display: none;
-    padding: 10px;
-    background: #6fb353;
-    border-bottom: 1px solid #5a9445;
+    padding: 15px 10px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    justify-content: center;
+    gap: 15px;
 }
 
 .mobile-nav-toggle,
 .mobile-filter-toggle {
-    background: #f48810;
+    background: #6fb353; /* CHANGED TO GREEN */
     color: white;
     border: none;
-    padding: 12px 16px;
-    border-radius: 6px;
+    padding: 14px 20px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 16px;
+    flex: 1;
+    max-width: 160px;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background 0.2s ease;
 }
 
 .mobile-nav-toggle:hover,
 .mobile-filter-toggle:hover {
-    background: #d9740e;
+    background: #5a9445;
 }
 
 /* Mobile Navigation Slide-out */
@@ -1268,8 +1275,6 @@ Mobile Navigation & Layout
     /* Show mobile controls */
     .mobile-header-controls {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
     }
     
     /* Show mobile map */
@@ -1464,5 +1469,10 @@ body.mobile-filter-open {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    
+    .mobile-nav-toggle,
+    .mobile-filter-toggle {
+        min-height: 50px;
     }
 }
