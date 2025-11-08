@@ -18,6 +18,9 @@ fetch("./data/2025/2025_Lown_Index_GA.json")
         renderHospitals(hospitalData);
         initHospitalMap(hospitalData);
         initMobileMap(hospitalData);
+        
+        // Initialize mobile UI
+        initMobileUI();
     })
     .catch(err => console.error("Error loading JSON:", err));
 
@@ -62,8 +65,83 @@ function initMobileEventListeners() {
         toggleMobileFilters();
     });
 
-    // Sync mobile and desktop filter inputs
+    // Mobile view toggle buttons
+    const mobileViewSystemsBtn = document.getElementById('mobileViewSystemsBtn');
+    const mobileViewIndividualsBtn = document.getElementById('mobileViewIndividualsBtn');
+    const mobileFilterCriticalBtn = document.getElementById('mobileFilterCriticalBtn');
+    const mobileFilterAcuteBtn = document.getElementById('mobileFilterAcuteBtn');
+
+    if (mobileViewSystemsBtn) {
+        mobileViewSystemsBtn.addEventListener('click', function() {
+            document.getElementById('viewSystemsBtn').click();
+            syncMobileViewButtons();
+        });
+    }
+
+    if (mobileViewIndividualsBtn) {
+        mobileViewIndividualsBtn.addEventListener('click', function() {
+            document.getElementById('viewIndividualsBtn').click();
+            syncMobileViewButtons();
+        });
+    }
+
+    if (mobileFilterCriticalBtn) {
+        mobileFilterCriticalBtn.addEventListener('click', function() {
+            document.getElementById('filterCriticalBtn').click();
+            syncMobileFilterButtons();
+        });
+    }
+
+    if (mobileFilterAcuteBtn) {
+        mobileFilterAcuteBtn.addEventListener('click', function() {
+            document.getElementById('filterAcuteBtn').click();
+            syncMobileFilterButtons();
+        });
+    }
+
+    // Sync checkbox states
     syncFilterInputs();
+}
+
+function syncMobileViewButtons() {
+    const viewSystemsBtn = document.getElementById('viewSystemsBtn');
+    const viewIndividualsBtn = document.getElementById('viewIndividualsBtn');
+    const mobileViewSystemsBtn = document.getElementById('mobileViewSystemsBtn');
+    const mobileViewIndividualsBtn = document.getElementById('mobileViewIndividualsBtn');
+    const individualOptions = document.getElementById('individualOptions');
+    const mobileIndividualOptions = document.getElementById('mobileIndividualOptions');
+
+    if (viewSystemsBtn && mobileViewSystemsBtn) {
+        if (viewSystemsBtn.classList.contains('active')) {
+            mobileViewSystemsBtn.classList.add('active');
+            mobileViewIndividualsBtn.classList.remove('active');
+            if (mobileIndividualOptions) mobileIndividualOptions.style.display = 'none';
+        } else {
+            mobileViewSystemsBtn.classList.remove('active');
+            mobileViewIndividualsBtn.classList.add('active');
+            if (mobileIndividualOptions) mobileIndividualOptions.style.display = 'block';
+        }
+    }
+}
+
+function syncMobileFilterButtons() {
+    const filterCriticalBtn = document.getElementById('filterCriticalBtn');
+    const filterAcuteBtn = document.getElementById('filterAcuteBtn');
+    const mobileFilterCriticalBtn = document.getElementById('mobileFilterCriticalBtn');
+    const mobileFilterAcuteBtn = document.getElementById('mobileFilterAcuteBtn');
+
+    if (filterCriticalBtn && mobileFilterCriticalBtn) {
+        if (filterCriticalBtn.classList.contains('active')) {
+            mobileFilterCriticalBtn.classList.add('active');
+            mobileFilterAcuteBtn.classList.remove('active');
+        } else if (filterAcuteBtn.classList.contains('active')) {
+            mobileFilterCriticalBtn.classList.remove('active');
+            mobileFilterAcuteBtn.classList.add('active');
+        } else {
+            mobileFilterCriticalBtn.classList.remove('active');
+            mobileFilterAcuteBtn.classList.remove('active');
+        }
+    }
 }
 
 function toggleMobileNavigation() {
@@ -87,27 +165,39 @@ function toggleMobileFilters() {
     overlay.style.display = body.classList.contains('mobile-filter-open') ? 'block' : 'none';
     setTimeout(() => {
         panel.classList.toggle('active');
+        
+        // Sync button states when opening
+        if (body.classList.contains('mobile-filter-open')) {
+            syncMobileViewButtons();
+            syncMobileFilterButtons();
+            syncFilterInputs();
+        }
     }, 10);
 }
 
 function syncFilterInputs() {
     // Sync checkbox states between mobile and desktop
-    const syncCheckboxes = () => {
-        const desktopCheckboxes = document.querySelectorAll('.sidebar input[type="checkbox"]');
-        const mobileCheckboxes = document.querySelectorAll('.mobile-filter-content input[type="checkbox"]');
-        
-        desktopCheckboxes.forEach((checkbox, index) => {
-            if (mobileCheckboxes[index]) {
-                mobileCheckboxes[index].checked = checkbox.checked;
-            }
-        });
-    };
+    const desktopCheckboxes = document.querySelectorAll('.sidebar input[type="checkbox"]');
+    const mobileCheckboxes = document.querySelectorAll('.mobile-filter-content input[type="checkbox"]');
+    
+    desktopCheckboxes.forEach((checkbox, index) => {
+        if (mobileCheckboxes[index]) {
+            mobileCheckboxes[index].checked = checkbox.checked;
+        }
+    });
 
-    // Sync on page load
-    setTimeout(syncCheckboxes, 100);
+    // Sync input values
+    const zipInput = document.getElementById('zipInput');
+    const mobileZipInput = document.getElementById('mobileZipInput');
+    const radiusSelect = document.getElementById('radiusSelect');
+    const mobileRadiusSelect = document.getElementById('mobileRadiusSelect');
 
-    // Sync when mobile filters are opened
-    document.querySelector('.mobile-filter-toggle')?.addEventListener('click', syncCheckboxes);
+    if (zipInput && mobileZipInput) {
+        mobileZipInput.value = zipInput.value;
+    }
+    if (radiusSelect && mobileRadiusSelect) {
+        mobileRadiusSelect.value = radiusSelect.value;
+    }
 }
 
 // ===============================
@@ -331,19 +421,19 @@ function getSelectedHospitalType() {
 viewSystemsBtn.addEventListener('click', () => {
     viewSystemsBtn.classList.add('active');
     viewIndividualsBtn.classList.remove('active');
-    individualOptions.style.display = 'none'; // NOTE: Hides individual hospital type options
+    individualOptions.style.display = 'none';
     applyAllFilters();
 });
 
 viewIndividualsBtn.addEventListener('click', () => {
     viewIndividualsBtn.classList.add('active');
     viewSystemsBtn.classList.remove('active');
-    individualOptions.style.display = 'block'; // NOTE: Shows individual hospital type options
+    individualOptions.style.display = 'block';
     applyAllFilters();
 });
 
 // ===============================
-// Apply Location Button - NOTE: ADDED THIS MISSING EVENT LISTENER
+// Apply Location Button
 // ===============================
 document.getElementById('applyLocationBtn').addEventListener('click', () => {
     applyAllFilters();
@@ -456,14 +546,14 @@ document.getElementById('applyFiltersBtn').addEventListener('click', () => {
 });
 
 // ===============================
-// Reset Filters - NOTE: REMOVED viewIndividualsBtn.click() to prevent auto-showing dropdown
+// Reset Filters
 // ===============================
 function resetAllFilters() {
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     document.getElementById('zipInput').value = '';
     document.getElementById('radiusSelect').selectedIndex = 0;
 
-    // Reset view buttons - NOTE: Only deactivates type buttons, doesn't change view mode
+    // Reset view buttons
     deactivateHospitalTypeButtons();
 
     // Reset to all data
@@ -676,11 +766,3 @@ function showErrorPopup(message) {
         setTimeout(() => popup.remove(), 400);
     }, 4000);
 }
-
-// ===============================
-// Initialize Mobile UI when DOM is loaded
-// ===============================
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize mobile UI
-    setTimeout(initMobileUI, 500);
-});
