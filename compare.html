@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compare Hospitals | Georgia Watch</title>
+    <title>Compare Hospitals - Georgia Hospital System Scorecard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/compare.css">
@@ -13,51 +13,20 @@
         <div class="container">
             <div class="top-nav">
                 <div class="logo">
-                    <img src="images/logo2White.png" width="auto" height="80" />
+                    <img src="images/logo2White.png" width="auto" height="80" alt="Georgia Watch Logo">
                     <span>Georgia Watch</span>
                 </div>
                 <div class="nav-links">
-                    <a href="index.html">Rankings</a>
-                    <a href="methodology.html">Methodology</a>
+                    <a href="index.html" class="nav-link">Rankings</a>
+                    <a href="methodology.html" class="nav-link">Methodology</a>
                     <a href="https://georgiawatch.org/about/">About Us</a>
                     <a href="https://georgiawatch.org/support-us/donate/" class="donate-btn">Donate</a>
                 </div>
             </div>
-            <div class="header-content">
-                <h1>COMPARE HOSPITALS</h1>
-                <p>Side-by-side comparison of hospital performance metrics</p>
-            </div>
         </div>
     </header>
 
-    <!-- Mobile Header Controls -->
-    <div class="mobile-header-controls">
-        <button class="mobile-nav-toggle">
-            <span>☰</span> Menu
-        </button>
-        <button class="mobile-filter-toggle" style="visibility: hidden;">
-            <span>🔍</span> Filters
-        </button>
-    </div>
-
-    <!-- Mobile Navigation Panel -->
-    <div class="mobile-nav-overlay">
-        <div class="mobile-nav-panel">
-            <div class="mobile-nav-header">
-                <h3>Navigation</h3>
-                <button class="mobile-nav-close">×</button>
-            </div>
-            <div class="mobile-nav-links">
-                <a href="index.html">Rankings</a>
-                <a href="methodology.html">Methodology</a>
-                <a href="compare.html">Compare Hospitals</a>
-                <a href="https://georgiawatch.org/about/">About Us</a>
-                <a href="https://georgiawatch.org/support-us/donate/" class="donate-btn">Donate</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="container compare-container">
+    <div class="compare-container">
         <!-- Selection Section -->
         <section class="selection-section">
             <div class="selection-cards">
@@ -104,7 +73,6 @@
                     ← Back to Selection
                 </button>
             </div>
-
             <div class="comparison-grid" id="comparisonGrid">
                 <!-- Comparison content will be populated by JavaScript -->
             </div>
@@ -122,6 +90,7 @@
                     <li><a href="https://georgiawatch.org/about/">About Us</a></li>
                     <li><a href="https://georgiawatch.org/support-us/donate/">Donate</a></li>
                     <li><a href="#">Legal/Privacy</a></li>
+                    <li><a href="#">Site Map</a></li>
                 </ul>
                 <div class="copyright">
                     <p>Georgia Watch is a non-profit, nonpartisan 501(c)3 organization. © 2024 Georgia Watch. All Rights Reserved.</p>
@@ -131,6 +100,5 @@
     </footer>
 
     <script src="scripts/compare.js"></script>
-    <script src="scripts/main.js"></script>
 </body>
 </html>
