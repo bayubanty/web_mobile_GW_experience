@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Methodology - Georgia Watch</title>
+    <title>Methodology - Georgia Hospital System Scorecard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -12,13 +12,13 @@
         <div class="container">
             <div class="top-nav">
                 <div class="logo">
-                    <img src="images/logo2White.png" width="auto" height="80" alt="Georgia Watch Logo">
-                    <span>Georgia Watch</span>
+                    <img src="images/logo2White.png" width="auto" height="80" alt="Georgia Watch Logo" class="logo-img">
+                    <span class="logo-text">Georgia Watch</span>
                 </div>
                 <div class="nav-links">
-                    <a href="index.html">Rankings</a>
-                    <a href="methodology.html">Methodology</a>
-                    <a href="compare.html">Compare Hospitals</a>
+                    <a href="index.html" class="nav-link">Rankings</a>
+                    <a href="methodology.html" class="nav-link">Methodology</a>
+                    <a href="compare.html" class="nav-link">Compare Hospitals</a>
                     <a href="https://georgiawatch.org/about/">About Us</a>
                     <a href="https://georgiawatch.org/support-us/donate/" class="donate-btn">Donate</a>
                 </div>
@@ -58,23 +58,19 @@
             <section class="categories">
                 <h2>Evaluation Categories</h2>
                 <p>Each hospital is evaluated across four key categories. Click a card to explore the focus of each area.</p>
-
                 <div class="category-grid">
                     <div class="category-card">
                         <h3>Financial Transparency & Institutional Health</h3>
                         <p>Measures how openly hospitals share financial data and maintain fiscal stability, transparency, and staff investment.</p>
                     </div>
-
                     <div class="category-card">
                         <h3>Community Benefit Spending</h3>
                         <p>Evaluates how hospitals invest in their communities relative to their tax-exempt benefits and strategic outreach programs.</p>
                     </div>
-
                     <div class="category-card">
                         <h3>Healthcare Affordability & Billing</h3>
                         <p>Assesses billing practices, financial assistance availability, and affordability for patients of varying income levels.</p>
                     </div>
-
                     <div class="category-card">
                         <h3>Healthcare Access & Social Responsibility</h3>
                         <p>Examines service range, workforce equity, demographic alignment, and community access to essential health resources.</p>
@@ -107,17 +103,14 @@
             <!-- ===== FAQ Section ===== -->
             <section class="methodology-faq">
                 <h2>Frequently Asked Questions</h2>
-
                 <details>
                     <summary>How are grades converted to stars?</summary>
                     <p>Letter grades (A-F) are mapped to a five-star scale for accessibility. Half-stars represent intermediate values (e.g., B+ = 4.5 stars).</p>
                 </details>
-
                 <details>
                     <summary>Why are some hospitals missing data?</summary>
                     <p>Data availability varies based on reporting requirements and public disclosures. Missing data is treated neutrally.</p>
                 </details>
-
                 <details>
                     <summary>How often is the scorecard updated?</summary>
                     <p>The scorecard is updated annually or when new public datasets become available, ensuring transparency and accuracy.</p>
@@ -130,10 +123,10 @@
         <div class="container">
             <div class="footer-content">
                 <ul class="footer-links">
-                    <li><a href="index.html">Georgia Watch</a></li>
-                    <li><a href="index.html">Rankings</a></li>
-                    <li><a href="methodology.html">Methodology</a></li>
-                    <li><a href="compare.html">Compare Hospitals</a></li>
+                    <li><a href="#">Georgia Watch</a></li>
+                    <li><a href="index.html" class="nav-link">Rankings</a></li>
+                    <li><a href="methodology.html" class="nav-link">Methodology</a></li>
+                    <li><a href="compare.html" class="nav-link">Compare Hospitals</a></li>
                     <li><a href="https://georgiawatch.org/about/">About Us</a></li>
                     <li><a href="https://georgiawatch.org/support-us/donate/">Donate</a></li>
                     <li><a href="#">Legal/Privacy</a></li>
@@ -145,5 +138,7 @@
             </div>
         </div>
     </footer>
+
+    <script src="scripts/utils.js"></script>
 </body>
 </html>
