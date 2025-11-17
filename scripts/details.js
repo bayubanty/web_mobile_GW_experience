@@ -1,45 +1,33 @@
 // ===============================
 // Hospital Details Page
 // ===============================
-
-let hospitalData = [];
-let currentHospital = null;
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Load hospital data and initialize details page
-    loadHospitalData();
-    
-    // Set up back button
-    document.getElementById('backToResults').addEventListener('click', function(e) {
-        e.preventDefault();
-        window.history.back();
-    });
+    loadHospitalDetails();
 });
 
-async function loadHospitalData() {
+async function loadHospitalDetails() {
     try {
         // Get hospital ID from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const hospitalId = urlParams.get('id');
-        
+
         if (!hospitalId) {
             showError('Hospital ID not specified in URL');
             return;
         }
 
         // Load hospital data
-        const response = await fetch('data/2025/2025_GW_HospitalScores.json');
-        const jsonData = await response.json();
+        const response = await fetch('./data/2025/2025_GW_HospitalScores.json');
+        const data = await response.json();
         
-        // Find the specific hospital
-        const hospital = jsonData.find(h => h.Hospital_ID == hospitalId);
-        
+        const hospital = data.hospitals.find(h => String(h.Hospital_ID) === String(hospitalId));
+
         if (!hospital) {
             showError('Hospital not found');
             return;
         }
 
-        currentHospital = hospital;
+        // Populate hospital details
         populateHospitalDetails(hospital);
 
     } catch (err) {
@@ -49,22 +37,21 @@ async function loadHospitalData() {
 }
 
 function populateHospitalDetails(hospital) {
-    // Populate basic hospital info
+    // Hospital Name
     document.getElementById('hospitalName').textContent = hospital.Hospital_Name || 'Unnamed Hospital';
+
+    // Address
     document.getElementById('streetLine').textContent = hospital.Street_Address || '---';
-    document.getElementById('cityStateZip').textContent = [hospital.City, hospital.State, hospital.ZIP_Code].filter(Boolean).join(', ');
+    document.getElementById('cityStateZip').textContent = 
+        [hospital.City, hospital.State, hospital.ZIP_Code].filter(Boolean).join(', ');
 
     // Hospital Info
     const infoMap = {
         hospitalCounty: hospital.County || '---',
         hospitalSize: (() => {
             const sizeMap = {
-                'XS': "Extra Small",
-                'S': "Small", 
-                'M': "Medium",
-                'L': "Large",
-                'XL': "Extra Large",
-                'XXL': "Extra Extra Large"
+                'XS': "Extra Small", 'S': "Small", 'M': "Medium", 
+                'L': "Large", 'XL': "Extra Large", 'XXL': "Very Large"
             };
             return sizeMap[hospital.Size_Group] || "---";
         })(),
@@ -88,7 +75,7 @@ function populateHospitalDetails(hospital) {
     // Default fallback list if dataset has no service info
     let services = [
         "Behavioral Health",
-        "Cardiology", 
+        "Cardiology",
         "Emergency Care",
         "Imaging & Radiology",
         "Maternity & Neonatal ICU",
@@ -107,24 +94,19 @@ function populateHospitalDetails(hospital) {
     const overallGrade = convertRatingToGrade(hospital.Overall_Star_Rating);
     const starWrap = document.getElementById('overallStars');
     if (starWrap) {
-        starWrap.innerHTML = renderStars(
-            convertGradeToStars(overallGrade).value
-        );
+        starWrap.innerHTML = renderStars(convertGradeToStars(overallGrade).value);
     }
-
-    // Hide redundant text
-    const gradeText = document.getElementById('overallGradeText');
-    if (gradeText) gradeText.textContent = "";
 
     // Category-level stars
     const categoryMap = {
-        financialTransparencyStars: convertRatingToGrade(hospital.FTIH_Category_Rating),
-        communityBenefitStars: convertRatingToGrade(hospital.CBS_Category_Rating),
-        affordabilityBillingStars: convertRatingToGrade(hospital.HAB_Category_Rating),
-        accessResponsibilityStars: convertRatingToGrade(hospital.HASR_Category_Rating)
+        financialTransparencyStars: hospital.FTIH_Category_Rating,
+        communityBenefitStars: hospital.CBS_Category_Rating,
+        affordabilityBillingStars: hospital.HAB_Category_Rating,
+        accessResponsibilityStars: hospital.HASR_Category_Rating
     };
 
-    for (const [id, grade] of Object.entries(categoryMap)) {
+    for (const [id, rating] of Object.entries(categoryMap)) {
+        const grade = convertRatingToGrade(rating);
         const el = document.getElementById(id);
         if (el) el.innerHTML = renderStars(convertGradeToStars(grade).value);
     }
@@ -136,7 +118,6 @@ function populateHospitalDetails(hospital) {
         let lon = parseFloat(hospital.Longitude);
 
         if (!lat || !lon) {
-            // Use ZIP code approximation if coordinates not available
             const coords = getZipCoords(hospital.ZIP_Code);
             lat = coords[0];
             lon = coords[1];
@@ -154,7 +135,7 @@ function populateHospitalDetails(hospital) {
 
         L.marker([lat, lon]).addTo(window.detailMap).bindPopup(hospital.Hospital_Name || 'Unnamed Hospital');
 
-        document.getElementById("gmapsLink").href = 
+        document.getElementById("gmapsLink").href =
             `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
     }
 }
@@ -168,7 +149,6 @@ function convertRatingToGrade(rating) {
     return gradeMap[rating] || 'N/A';
 }
 
-// Star rating utilities (same as main.js)
 function convertGradeToStars(grade) {
     const gradeMap = {
         'A+': 5, 'A': 5, 'A-': 4.5,
@@ -177,6 +157,7 @@ function convertGradeToStars(grade) {
         'D+': 2.5, 'D': 2, 'D-': 1.5,
         'F': 1, 'N/A': 0
     };
+
     const value = gradeMap[grade] || 0;
     return { value };
 }
@@ -197,35 +178,34 @@ function renderStars(value) {
 
 function fullStarSVG() {
     return `
-        <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function halfStarSVG() {
     return `
-        <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
-            <defs>
-                <linearGradient id="halfGradient" x1="0" x2="1">
-                    <stop offset="50%" stop-color="#f48810" />
-                    <stop offset="50%" stop-color="#a4cc95" />
-                </linearGradient>
-            </defs>
-            <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+            <linearGradient id="halfGradient" x1="0" x2="1">
+                <stop offset="50%" stop-color="#f48810" />
+                <stop offset="50%" stop-color="#a4cc95" />
+            </linearGradient>
+        </defs>
+        <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function emptyStarSVG() {
     return `
-        <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
-// ZIP coordinate lookup (same as main.js)
 function getZipCoords(zip) {
     const lookup = {
         '31513': [33.54609, -82.3163154], // Baxley
@@ -240,6 +220,7 @@ function getZipCoords(zip) {
         '30606': [34.16608, -83.4013], // Athens
         '30060': [33.96795, -84.55135], // Marietta
     };
+
     const coords = lookup[String(zip)] || [32.5, -83.5];
     return coords;
 }
@@ -248,8 +229,19 @@ function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-popup visible';
     errorDiv.innerHTML = `<p>${message}</p>`;
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #e74c3c;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1002;
+    `;
     document.body.appendChild(errorDiv);
-    
+
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
