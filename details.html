@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Details - Georgia Watch</title>
+    <title>Hospital Details - Georgia Hospital System Scorecard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/details.css">
 </head>
 <body class="details-page">
     <header>
         <div class="container">
             <div class="top-nav">
                 <div class="logo">
-                    <img src="images/logo2White.png" width="auto" height="80" alt="Georgia Watch Logo">
-                    <span>Georgia Watch</span>
+                    <img src="images/logo2White.png" width="auto" height="80" alt="Georgia Watch Logo" class="logo-img">
+                    <span class="logo-text">Georgia Watch</span>
                 </div>
                 <div class="nav-links">
-                    <a href="index.html">Rankings</a>
-                    <a href="methodology.html">Methodology</a>
-                    <a href="compare.html">Compare Hospitals</a>
+                    <a href="index.html" class="nav-link">Rankings</a>
+                    <a href="methodology.html" class="nav-link">Methodology</a>
+                    <a href="compare.html" class="nav-link">Compare Hospitals</a>
                     <a href="https://georgiawatch.org/about/">About Us</a>
                     <a href="https://georgiawatch.org/support-us/donate/" class="donate-btn">Donate</a>
                 </div>
@@ -31,11 +32,9 @@
     <div id="details-page" class="page-content active">
         <!-- ===== HERO SECTION ===== -->
         <div class="detail-topbar">
-            <a href="index.html" class="btn back">← Back to Results</a>
+            <a href="index.html" class="btn back" id="backToResults">← Back to Results</a>
             <h1 id="hospitalName">Hospital Name Loading...</h1>
         </div>
-
-        <div class="hospital-title"></div>
 
         <section class="detail-hero-wrap">
             <div class="detail-hero">
@@ -53,13 +52,11 @@
                         <p><span id="streetLine"></span></p>
                         <p><span id="cityStateZip"></span></p>
                     </div>
-
                     <div class="overall-grade-wrap">
                         <h3>Overall Grade: </h3>
                         <div id="overallStars" class="star-rating"></div>
                         <p id="overallGradeText" class="overall-grade-text"></p>
                     </div>
-
                     <div class="info-grid">
                         <p><strong>County:</strong> <span id="hospitalCounty">---</span></p>
                         <p><strong>Size:</strong> <span id="hospitalSize">---</span></p>
@@ -129,10 +126,10 @@
         <div class="container">
             <div class="footer-content">
                 <ul class="footer-links">
-                    <li><a href="index.html">Georgia Watch</a></li>
-                    <li><a href="index.html">Rankings</a></li>
-                    <li><a href="methodology.html">Methodology</a></li>
-                    <li><a href="compare.html">Compare Hospitals</a></li>
+                    <li><a href="#">Georgia Watch</a></li>
+                    <li><a href="index.html" class="nav-link">Rankings</a></li>
+                    <li><a href="methodology.html" class="nav-link">Methodology</a></li>
+                    <li><a href="compare.html" class="nav-link">Compare Hospitals</a></li>
                     <li><a href="https://georgiawatch.org/about/">About Us</a></li>
                     <li><a href="https://georgiawatch.org/support-us/donate/">Donate</a></li>
                     <li><a href="#">Legal/Privacy</a></li>
@@ -146,6 +143,7 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="scripts/utils.js"></script>
     <script src="scripts/details.js"></script>
 </body>
 </html>
