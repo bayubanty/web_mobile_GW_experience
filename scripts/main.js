@@ -1,7 +1,6 @@
 // ===============================
 // Page Navigation
 // ===============================
-
 document.addEventListener('DOMContentLoaded', function() {
     // Set up navigation
     const navLinks = document.querySelectorAll('.nav-link');
@@ -9,22 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const page = this.getAttribute('data-page');
-            showPage(page);
-            // Close mobile nav if open
-            if (document.body.classList.contains('mobile-nav-open')) {
-                toggleMobileNavigation();
+            if (page === 'compare') {
+                window.location.href = 'compare.html';
+            } else if (page === 'methodology') {
+                window.location.href = 'methodology.html';
             }
         });
     });
-
-    // Set up back button for details page
-    document.getElementById('backToResults')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        showPage('index');
-    });
-
-    // Initialize the default page
-    showPage('index');
 
     // Load hospital data and initialize the app
     loadHospitalData();
@@ -34,46 +24,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initFilterButtons();
 });
 
-function showPage(page) {
-    // Hide all pages
-    const pages = document.querySelectorAll('.page-content');
-    pages.forEach(p => p.classList.remove('active'));
-    
-    // Show the selected page
-    const targetPage = document.getElementById(`${page}-page`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        // Update body class for styling
-        document.body.className = `${page}-page`;
-        
-        // Initialize page-specific functionality
-        if (page === 'index') {
-            initIndexPage();
-        } else if (page === 'compare') {
-            initComparePage();
-        }
-    }
-}
-
 // ===============================
 // Data Storage
 // ===============================
-
 let hospitalData = [];
 let filteredHospitalData = [];
 
 // ===============================
 // Load JSON Data
 // ===============================
-
 async function loadHospitalData() {
     try {
-        // Load from external JSON file
-        const response = await fetch('data/2025/2025_GW_HospitalScores.json');
-        const jsonData = await response.json();
+        const response = await fetch('./data/2025/2025_GW_HospitalScores.json');
+        const data = await response.json();
         
-        // Transform the data to match what your code expects
-        hospitalData = jsonData.map(hospital => ({
+        hospitalData = data.hospitals.map(hospital => ({
             // Map to expected property names
             RECORD_ID: hospital.Hospital_ID,
             Name: hospital.Hospital_Name,
@@ -108,57 +73,16 @@ async function loadHospitalData() {
 
         filteredHospitalData = [...hospitalData];
         console.log("Hospital data loaded:", hospitalData.length, "records");
-        console.log("Sample hospital:", hospitalData[0]);
 
         // Initial render
         renderHospitals(hospitalData);
         initHospitalMap(hospitalData);
         initMobileMap(hospitalData);
-
-        // Initialize mobile UI
         initMobileUI();
 
     } catch (err) {
         console.error("Error loading JSON:", err);
-        // Fallback to sample data if fetch fails
-        loadSampleData();
     }
-}
-
-// Fallback sample data
-function loadSampleData() {
-    hospitalData = [
-        {
-            "RECORD_ID": 1,
-            "Name": "Appling Hospital",
-            "Address": "163 E Tollison St",
-            "City": "Baxley",
-            "State": "GA",
-            "Zip": 31513,
-            "County": "Appling",
-            "Latitude": 33.54609,
-            "Longitude": -82.3163154,
-            "TIER_1_GRADE_Lown_Composite": "B",
-            "TIER_2_GRADE_Outcome": "B",
-            "TIER_2_GRADE_Value": "B",
-            "TIER_2_GRADE_Civic": "B",
-            "TIER_3_GRADE_Pat_Saf": "B",
-            "TIER_3_GRADE_Pat_Exp": "B",
-            "TYPE_urban": 0,
-            "TYPE_rural": 1,
-            "TYPE_NonProfit": 0,
-            "TYPE_ForProfit": 0,
-            "TYPE_HospTyp_CAH": 1,
-            "TYPE_HospTyp_ACH": 0,
-            "Size": "s",
-            "HOSPITAL_SYSTEM": false
-        }
-        // Add more sample data as needed
-    ];
-    filteredHospitalData = [...hospitalData];
-    renderHospitals(hospitalData);
-    initHospitalMap(hospitalData);
-    initMobileMap(hospitalData);
 }
 
 // Helper function to convert 1-5 ratings to A-F grades
@@ -173,11 +97,8 @@ function convertRatingToGrade(rating) {
 // ===============================
 // Mobile Navigation & Filter Functions
 // ===============================
-
 function initMobileUI() {
-    // Initialize mobile event listeners
     initMobileEventListeners();
-    // Initialize mobile navigation
     initMobileNavigation();
 }
 
@@ -185,7 +106,7 @@ function initMobileNavigation() {
     const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
     const mobileNavClose = document.querySelector('.mobile-nav-close');
     const mobileNavOverlay = document.querySelector('.mobile-nav-overlay');
-    
+
     if (mobileNavToggle && mobileNavOverlay) {
         mobileNavToggle.addEventListener('click', toggleMobileNavigation);
         if (mobileNavClose) {
@@ -201,9 +122,9 @@ function toggleMobileNavigation() {
     const body = document.body;
     const overlay = document.querySelector('.mobile-nav-overlay');
     const panel = document.querySelector('.mobile-nav-panel');
-    
+
     if (!overlay || !panel) return;
-    
+
     body.classList.toggle('mobile-nav-open');
     overlay.style.display = body.classList.contains('mobile-nav-open') ? 'block' : 'none';
     setTimeout(() => {
@@ -267,8 +188,7 @@ function initMobileEventListeners() {
 
     if (mobileCompareHospitalsBtn) {
         mobileCompareHospitalsBtn.addEventListener('click', function() {
-            document.getElementById('compareHospitalsBtn').click();
-            syncMobileViewButtons();
+            window.location.href = 'compare.html';
         });
     }
 
@@ -293,7 +213,6 @@ function initMobileEventListeners() {
 function syncMobileViewButtons() {
     const viewSystemsBtn = document.getElementById('viewSystemsBtn');
     const viewIndividualsBtn = document.getElementById('viewIndividualsBtn');
-    const compareHospitalsBtn = document.getElementById('compareHospitalsBtn');
     const mobileViewSystemsBtn = document.getElementById('mobileViewSystemsBtn');
     const mobileViewIndividualsBtn = document.getElementById('mobileViewIndividualsBtn');
     const mobileCompareHospitalsBtn = document.getElementById('mobileCompareHospitalsBtn');
@@ -311,10 +230,10 @@ function syncMobileViewButtons() {
             mobileViewIndividualsBtn.classList.add('active');
             mobileCompareHospitalsBtn.classList.remove('active');
             if (mobileIndividualOptions) mobileIndividualOptions.style.display = 'block';
-        } else if (compareHospitalsBtn.classList.contains('active')) {
+        } else {
             mobileViewSystemsBtn.classList.remove('active');
             mobileViewIndividualsBtn.classList.remove('active');
-            mobileCompareHospitalsBtn.classList.add('active');
+            mobileCompareHospitalsBtn.classList.remove('active');
             if (mobileIndividualOptions) mobileIndividualOptions.style.display = 'none';
         }
     }
@@ -344,7 +263,7 @@ function toggleMobileFilters() {
     const body = document.body;
     const overlay = document.querySelector('.mobile-filter-overlay');
     const panel = document.querySelector('.mobile-filter-panel');
-    
+
     body.classList.toggle('mobile-filter-open');
     overlay.style.display = body.classList.contains('mobile-filter-open') ? 'block' : 'none';
     setTimeout(() => {
@@ -362,7 +281,7 @@ function syncFilterInputs() {
     // Sync checkbox states between mobile and desktop
     const desktopCheckboxes = document.querySelectorAll('.sidebar input[type="checkbox"]');
     const mobileCheckboxes = document.querySelectorAll('.mobile-filter-content input[type="checkbox"]');
-    
+
     desktopCheckboxes.forEach((checkbox, index) => {
         if (mobileCheckboxes[index]) {
             mobileCheckboxes[index].checked = checkbox.checked;
@@ -386,7 +305,6 @@ function syncFilterInputs() {
 // ===============================
 // Mobile Map Functions
 // ===============================
-
 let mobileMap = null;
 let mobileMapMarkers = [];
 
@@ -428,14 +346,14 @@ function updateMobileMapMarkers(data) {
         const stars = convertGradeToStars(grade);
 
         const popupHTML = `
-            <div class="map-popup">
-                <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
-                ${hospital.City || ''}, ${hospital.State || ''}<br>
-                <div class="star-rating">${renderStars(stars.value)}</div>
-                <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
-                    View Full Details
-                </a>
-            </div>
+        <div class="map-popup">
+            <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
+            ${hospital.City || ''}, ${hospital.State || ''}<br>
+            <div class="star-rating">${renderStars(stars.value)}</div>
+            <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
+                View Full Details
+            </a>
+        </div>
         `;
 
         const marker = L.marker([lat, lon]).addTo(mobileMap).bindPopup(popupHTML);
@@ -459,7 +377,6 @@ function updateMobileMapMarkers(data) {
 // ===============================
 // Render Hospitals
 // ===============================
-
 function renderHospitals(data) {
     const resultsTable = document.getElementById('hospitalResults');
     const resultsCount = document.getElementById('resultsCount');
@@ -486,20 +403,20 @@ function renderHospitals(data) {
 
         const gradeCell = document.createElement('td');
         gradeCell.innerHTML = `
-            <div class="star-rating" aria-label="${stars.value} out of 5 stars">
-                ${renderStars(stars.value)}
-            </div>
+        <div class="star-rating" aria-label="${stars.value} out of 5 stars">
+            ${renderStars(stars.value)}
+        </div>
         `;
         row.appendChild(gradeCell);
 
         const nameCell = document.createElement('td');
         nameCell.innerHTML = `
-            <strong>
-                <a href="details.html?id=${hospital.RECORD_ID}" class="hospital-link">
-                    ${hospital.Name || 'Unnamed Hospital'}
-                </a>
-            </strong><br>
-            ${hospital.City || ''}, ${hospital.State || ''}
+        <strong>
+            <a href="details.html?id=${hospital.RECORD_ID}" class="hospital-link">
+                ${hospital.Name || 'Unnamed Hospital'}
+            </a>
+        </strong><br>
+        ${hospital.City || ''}, ${hospital.State || ''}
         `;
         row.appendChild(nameCell);
 
@@ -514,13 +431,8 @@ function renderHospitals(data) {
         const fullDetailsButton = document.createElement('button');
         fullDetailsButton.textContent = 'View Full Details';
         fullDetailsButton.classList.add('view-full-detail');
-        fullDetailsButton.setAttribute('data-id', hospital.RECORD_ID);
         fullDetailsButton.addEventListener('click', () => {
-            if (hospital.RECORD_ID) {
-                window.location.href = `details.html?id=${hospital.RECORD_ID}`;
-            } else {
-                showErrorPopup('Sorry, we couldn\'t find more details for this hospital.');
-            }
+            window.location.href = `details.html?id=${hospital.RECORD_ID}`;
         });
 
         buttonCell.appendChild(detailsButton);
@@ -535,14 +447,15 @@ function renderHospitals(data) {
         const detailCell = document.createElement('td');
         detailCell.colSpan = 3;
         detailCell.innerHTML = `
-            <div class="detail-info">
-                <p class="inline-stars"><strong>Outcome:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Outcome || 'F').value)}</p>
-                <p class="inline-stars"><strong>Value:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Value || 'F').value)}</p>
-                <p class="inline-stars"><strong>Civic:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Civic || 'F').value)}</p>
-                <p class="inline-stars"><strong>Safety:</strong> ${renderStars(convertGradeToStars(hospital.TIER_3_GRADE_Pat_Saf || 'F').value)}</p>
-                <p class="inline-stars"><strong>Experience:</strong> ${renderStars(convertGradeToStars(hospital.TIER_3_GRADE_Pat_Exp || 'F').value)}</p>
-            </div>
+        <div class="detail-info">
+            <p class="inline-stars"><strong>Outcome:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Outcome || 'F').value)}</p>
+            <p class="inline-stars"><strong>Value:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Value || 'F').value)}</p>
+            <p class="inline-stars"><strong>Civic:</strong> ${renderStars(convertGradeToStars(hospital.TIER_2_GRADE_Civic || 'F').value)}</p>
+            <p class="inline-stars"><strong>Safety:</strong> ${renderStars(convertGradeToStars(hospital.TIER_3_GRADE_Pat_Saf || 'F').value)}</p>
+            <p class="inline-stars"><strong>Experience:</strong> ${renderStars(convertGradeToStars(hospital.TIER_3_GRADE_Pat_Exp || 'F').value)}</p>
+        </div>
         `;
+
         detailRow.appendChild(detailCell);
 
         // === Toggle Logic (single listener) ===
@@ -566,7 +479,6 @@ function renderHospitals(data) {
 // ===============================
 // View Toggle and Filter Buttons
 // ===============================
-
 function initViewToggleButtons() {
     const viewSystemsBtn = document.getElementById('viewSystemsBtn');
     const viewIndividualsBtn = document.getElementById('viewIndividualsBtn');
@@ -597,10 +509,6 @@ function initViewToggleButtons() {
 
     // Compare Hospitals toggle
     compareHospitalsBtn.addEventListener('click', () => {
-        deactivateAllViewButtons();
-        compareHospitalsBtn.classList.add('active');
-        individualOptions.style.display = 'none';
-        // Navigate to compare page
         window.location.href = 'compare.html';
     });
 }
@@ -672,7 +580,6 @@ function getSelectedHospitalType() {
 // ===============================
 // Main Filter Function
 // ===============================
-
 function applyAllFilters() {
     let filtered = [...hospitalData];
 
@@ -686,6 +593,7 @@ function applyAllFilters() {
 
     // Apply checkbox filters
     const checked = [...document.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+
     if (checked.length > 0) {
         filtered = filtered.filter(hospital => {
             return checked.every(val => {
@@ -706,6 +614,7 @@ function applyAllFilters() {
     // Apply location filter
     const zip = document.getElementById('zipInput').value.trim();
     const radius = document.getElementById('radiusSelect').value;
+
     if (zip && /^\d{5}$/.test(zip)) {
         const coords = getZipCoords(zip);
         filtered = filtered.filter(hospital => {
@@ -727,14 +636,13 @@ function applyAllFilters() {
 // ===============================
 // Distance Calculation
 // ===============================
-
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 3959; // Earth's radius in miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
+    const a =
         Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
@@ -743,7 +651,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 // ===============================
 // Sorting Function
 // ===============================
-
 function sortAndRender(data) {
     const sortValue = document.getElementById('sortSelect').value;
     let sorted = [...data];
@@ -774,7 +681,6 @@ function sortAndRender(data) {
 // ===============================
 // Reset Filters
 // ===============================
-
 function resetAllFilters() {
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     document.getElementById('zipInput').value = '';
@@ -801,7 +707,6 @@ function resetAllFilters() {
 // ===============================
 // Map Functions
 // ===============================
-
 let map = null;
 let mapMarkers = [];
 
@@ -857,14 +762,14 @@ function updateMapMarkers(data) {
         const stars = convertGradeToStars(grade);
 
         const popupHTML = `
-            <div class="map-popup">
-                <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
-                ${hospital.City || ''}, ${hospital.State || ''}<br>
-                <div class="star-rating">${renderStars(stars.value)}</div>
-                <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
-                    View Full Details
-                </a>
-            </div>
+        <div class="map-popup">
+            <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
+            ${hospital.City || ''}, ${hospital.State || ''}<br>
+            <div class="star-rating">${renderStars(stars.value)}</div>
+            <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
+                View Full Details
+            </a>
+        </div>
         `;
 
         const marker = L.marker([lat, lon]).addTo(map).bindPopup(popupHTML);
@@ -890,7 +795,6 @@ function updateMapMarkers(data) {
 // ===============================
 // ZIP-Based Coordinate Approximation
 // ===============================
-
 function getZipCoords(zip) {
     const lookup = {
         '31513': [33.54609, -82.3163154], // Baxley
@@ -904,8 +808,8 @@ function getZipCoords(zip) {
         '30322': [33.7954, -84.3202], // Atlanta
         '30606': [34.16608, -83.4013], // Athens
         '30060': [33.96795, -84.55135], // Marietta
-        // Add more as needed from your data
     };
+
     const coords = lookup[String(zip)] || [32.5, -83.5]; // Default to central Georgia
     return coords;
 }
@@ -913,7 +817,6 @@ function getZipCoords(zip) {
 // ===============================
 // Star Rating Utilities
 // ===============================
-
 function convertGradeToStars(grade) {
     const gradeMap = {
         'A+': 5, 'A': 5, 'A-': 4.5,
@@ -922,6 +825,7 @@ function convertGradeToStars(grade) {
         'D+': 2.5, 'D': 2, 'D-': 1.5,
         'F': 1, 'N/A': 0
     };
+
     const value = gradeMap[grade] || 0;
     return { value };
 }
@@ -942,43 +846,43 @@ function renderStars(value) {
 
 function fullStarSVG() {
     return `
-        <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function halfStarSVG() {
     return `
-        <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
-            <defs>
-                <linearGradient id="halfGradient" x1="0" x2="1">
-                    <stop offset="50%" stop-color="#f48810" />
-                    <stop offset="50%" stop-color="#a4cc95" />
-                </linearGradient>
-            </defs>
-            <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+            <linearGradient id="halfGradient" x1="0" x2="1">
+                <stop offset="50%" stop-color="#f48810" />
+                <stop offset="50%" stop-color="#a4cc95" />
+            </linearGradient>
+        </defs>
+        <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function emptyStarSVG() {
     return `
-        <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 // ===============================
 // Error Popup Utility
 // ===============================
-
 function showErrorPopup(message) {
     const popup = document.createElement('div');
     popup.className = 'error-popup';
     popup.innerHTML = `<p>${message}</p>`;
     document.body.appendChild(popup);
+
     setTimeout(() => popup.classList.add('visible'), 10);
     setTimeout(() => {
         popup.classList.remove('visible');
@@ -986,10 +890,7 @@ function showErrorPopup(message) {
     }, 4000);
 }
 
-// ===============================
-// Page Initialization
-// ===============================
-
-function initIndexPage() {
-    // Any index page specific initialization
-}
+// Make functions available globally for cross-page communication
+window.hospitalData = hospitalData;
+window.filteredHospitalData = filteredHospitalData;
+window.showErrorPopup = showErrorPopup;
