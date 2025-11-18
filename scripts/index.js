@@ -9,6 +9,135 @@ let mobileMap = null;
 let mobileMapMarkers = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, initializing application...");
+    initApplication();
+});
+
+async function initApplication() {
+    try {
+        console.log("Starting application initialization...");
+        
+        // Load hospital data first
+        await loadHospitalData();
+        
+        console.log("Hospital data loaded, initializing components...");
+        console.log("Available hospital data:", window.hospitalData);
+
+        // Initialize all components
+        initHospitalMap(window.hospitalData);
+        initMobileMap(window.hospitalData);
+        initMobileNavigation();
+        initMobileEventListeners();
+        initViewToggleButtons();
+        initFilterButtons();
+
+        // Initial render
+        console.log("Rendering hospitals...");
+        renderHospitals(window.hospitalData);
+        
+        console.log("Application initialization complete!");
+        
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        showErrorPopup('Failed to initialize application. Please check the console for details.');
+    }
+}
+
+// ===============================
+// Map Functions
+// ===============================
+
+function initHospitalMap(data) {
+    console.log("Initializing main map with data:", data);
+    const mapDiv = document.getElementById('mainMap');
+    
+    if (!mapDiv) {
+        console.error('Map container not found!');
+        return;
+    }
+
+    if (!map) {
+        map = L.map('mainMap').setView([32.7, -83.4], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+    }
+
+    updateMapMarkers(data);
+}
+
+function updateMapMarkers(data) {
+    console.log("Updating map markers with data:", data);
+    
+    // Clear old markers
+    mapMarkers.forEach(marker => map.removeLayer(marker));
+    mapMarkers = [];
+
+    if (!data || data.length === 0) {
+        console.log('No data to display on map');
+        return;
+    }
+
+    // Add new markers
+    data.forEach(hospital => {
+        let lat = parseFloat(hospital.Latitude);
+        let lon = parseFloat(hospital.Longitude);
+
+        // If no coordinates, approximate from ZIP code
+        if ((!lat || !lon) && hospital.Zip) {
+            [lat, lon] = getZipCoords(hospital.Zip);
+        }
+
+        if (!lat || !lon) {
+            console.warn('No coordinates for hospital:', hospital.Name);
+            return;
+        }
+
+        const grade = hospital.TIER_1_GRADE_Lown_Composite || 'N/A';
+        const stars = convertGradeToStars(grade);
+        const popupHTML = `
+        <div class="map-popup">
+            <strong>${hospital.Name || 'Unnamed Hospital'}</strong><br>
+            ${hospital.City || ''}, ${hospital.State || ''}<br>
+            <div class="star-rating">${renderStars(stars.value)}</div>
+            <a href="details.html?id=${hospital.RECORD_ID}" class="view-full-detail">
+                View Full Details
+            </a>
+        </div>
+        `;
+
+        const marker = L.marker([lat, lon]).addTo(map).bindPopup(popupHTML);
+        mapMarkers.push(marker);
+    });
+
+    // Adjust map to fit all visible markers
+    if (mapMarkers.length > 0) {
+        const group = L.featureGroup(mapMarkers);
+        map.fitBounds(group.getBounds().pad(0.2));
+    }
+
+    // Ensure map is properly sized
+    setTimeout(() => {
+        if (map) {
+            map.invalidateSize();
+        }
+    }, 100);
+}
+
+// ... (rest of your existing index.js code remains the same, just add the debug version above)
+
+// ===============================
+// Index Page Specific Functionality
+// ===============================
+
+// Map variables
+let map = null;
+let mapMarkers = [];
+let mobileMap = null;
+let mobileMapMarkers = [];
+
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize the application
     initApplication();
 });
