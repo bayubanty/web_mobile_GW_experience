@@ -9,73 +9,49 @@ window.filteredHospitalData = null;
 // ===============================
 // Data Loading
 // ===============================
-
 async function loadHospitalData() {
     try {
         if (window.hospitalData) {
-            console.log("Hospital data already loaded:", window.hospitalData.length, "records");
-            return window.hospitalData;
+            return window.hospitalData; // Already loaded
         }
 
-        console.log("Starting to load hospital data...");
-        
         const response = await fetch('data/2025/2025_GW_HospitalScores.json');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
         const rawData = await response.json();
-        console.log("Raw JSON data loaded:", rawData);
-        
-        // Check if Sheet1 exists and is an array
-        if (!rawData.Sheet1 || !Array.isArray(rawData.Sheet1)) {
-            console.error("Sheet1 not found or not an array in JSON data");
-            console.log("Available keys in rawData:", Object.keys(rawData));
-            return [];
-        }
-        
-        console.log("Sheet1 array found with", rawData.Sheet1.length, "items");
-        
+
         // Transform the data to match expected property names
-        window.hospitalData = rawData.Sheet1.map((hospital, index) => {
-            console.log(`Processing hospital ${index + 1}:`, hospital.Hospital_Name);
-            
-            return {
-                RECORD_ID: hospital.Hospital_ID,
-                Name: hospital.Hospital_Name,
-                Address: hospital.Street_Address,
-                City: hospital.City,
-                State: hospital.State,
-                Zip: hospital.ZIP_Code,
-                County: hospital.County,
-                Latitude: hospital.Latitude,
-                Longitude: hospital.Longitude,
-                TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
-                TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating || hospital['Financial Transparency Institutional Health_Category_Rating']),
-                TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating || hospital['Community Benefit Spending_Category_Rating']),
-                TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating || hospital['Healthcare Affordability Billing_Category_Rating']),
-                TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating || hospital['Healthcare Access & Social Rresponsibility _Category_Rating']),
-                TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
-                TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
-                TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
-                TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
-                TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
-                TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
-                TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' || hospital.Care_Level === 'Regional Referral' || hospital.Care_Level === 'Specialty' ? 1 : 0,
-                Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
-                HOSPITAL_SYSTEM: hospital.In_System === 1,
-                _original: hospital
-            };
-        });
+        window.hospitalData = rawData.map(hospital => ({
+            RECORD_ID: hospital.Hospital_ID,
+            Name: hospital.Hospital_Name,
+            Address: hospital.Street_Address,
+            City: hospital.City,
+            State: hospital.State,
+            Zip: hospital.ZIP_Code,
+            County: hospital.County,
+            Latitude: hospital.Latitude,
+            Longitude: hospital.Longitude,
+            TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
+            TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating),
+            TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating),
+            TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating),
+            TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating),
+            TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
+            TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
+            TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
+            TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
+            TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
+            TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
+            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' ? 1 : 0,
+            Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
+            HOSPITAL_SYSTEM: hospital.In_System === 1,
+            _original: hospital
+        }));
 
         window.filteredHospitalData = [...window.hospitalData];
-        console.log("Hospital data transformation complete:", window.hospitalData.length, "records");
-        console.log("Sample hospital:", window.hospitalData[0]);
+        console.log("Hospital data loaded:", window.hospitalData.length, "records");
+        
         return window.hospitalData;
     } catch (err) {
         console.error("Error loading hospital data:", err);
-        showErrorPopup('Failed to load hospital data. Please check the console for details.');
         return [];
     }
 }
@@ -83,18 +59,15 @@ async function loadHospitalData() {
 // Helper function to convert 1-5 ratings to A-F grades
 function convertRatingToGrade(rating) {
     if (!rating || rating === 'N/A') return 'N/A';
-    
     const gradeMap = {
         5: 'A', 4: 'B', 3: 'C', 2: 'D', 1: 'F'
     };
-    
     return gradeMap[rating] || 'N/A';
 }
 
 // ===============================
 // Star Rating Utilities
 // ===============================
-
 function convertGradeToStars(grade) {
     const gradeMap = {
         'A+': 5, 'A': 5, 'A-': 4.5,
@@ -103,7 +76,6 @@ function convertGradeToStars(grade) {
         'D+': 2.5, 'D': 2, 'D-': 1.5,
         'F': 1, 'N/A': 0
     };
-    
     const value = gradeMap[grade] || 0;
     return { value };
 }
@@ -124,38 +96,37 @@ function renderStars(value) {
 
 function fullStarSVG() {
     return `
-    <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-    </svg>
+        <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+        </svg>
     `;
 }
 
 function halfStarSVG() {
     return `
-    <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
-        <defs>
-            <linearGradient id="halfGradient" x1="0" x2="1">
-                <stop offset="50%" stop-color="#f48810" />
-                <stop offset="50%" stop-color="#a4cc95" />
-            </linearGradient>
-        </defs>
-        <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-    </svg>
+        <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+                <linearGradient id="halfGradient" x1="0" x2="1">
+                    <stop offset="50%" stop-color="#f48810" />
+                    <stop offset="50%" stop-color="#a4cc95" />
+                </linearGradient>
+            </defs>
+            <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+        </svg>
     `;
 }
 
 function emptyStarSVG() {
     return `
-    <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-    </svg>
+        <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+        </svg>
     `;
 }
 
 // ===============================
 // ZIP-Based Coordinate Approximation
 // ===============================
-
 function getZipCoords(zip) {
     const lookup = {
         '31513': [33.54609, -82.3163154],
@@ -169,42 +140,6 @@ function getZipCoords(zip) {
         '30322': [33.7954, -84.3202],
         '30606': [34.16608, -83.4013],
         '30060': [33.96795, -84.55135],
-        '30439': [32.0809, -81.0912],
-        '31634': [31.0339, -82.76445],
-        '31533': [31.5047, -82.8586],
-        '31768': [31.1621, -83.7921],
-        '31015': [31.97761, -83.781268],
-        '31023': [32.18507, -83.17896],
-        '39845': [31.05102, -84.88167],
-        '31750': [31.69762, -83.25991],
-        '30458': [32.4488, -81.7832],
-        '31329': [32.36369, -81.32069],
-        '30635': [34.11332, -82.87487],
-        '30401': [32.59258, -82.34732],
-        '30417': [32.1589, -81.9043],
-        '31774': [31.60329, -83.25134],
-        '31064': [33.31422, -83.6864],
-        '31539': [31.85727, -82.60728],
-        '30434': [32.121, -82.412],
-        '31313': [31.8469, -81.5959],
-        '39837': [31.1713, -84.7338],
-        '31029': [33.0309, -83.945],
-        '30650': [33.5849, -83.4807],
-        '30577': [34.5787, -83.3324],
-        '31036': [32.4745, -83.7406],
-        '31794': [31.4605, -83.5228],
-        '30286': [32.8818, -84.3278],
-        '31830': [32.8944, -84.6786],
-        '31082': [32.9956, -82.8044],
-        '30720': [34.7889, -84.985],
-        '31501': [31.2249, -82.348],
-        '30041': [34.2073, -84.1402],
-        '30115': [34.2368, -84.4908],
-        '30117': [33.5707, -85.0732],
-        '30240': [33.0454, -85.031],
-        '30014': [33.6018, -83.8487],
-        '30701': [34.5103, -84.931],
-        '31412': [32.0809, -81.0912]
     };
     const coords = lookup[String(zip)] || [32.5, -83.5];
     return coords;
@@ -213,7 +148,6 @@ function getZipCoords(zip) {
 // ===============================
 // Distance Calculation
 // ===============================
-
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 3959; // Earth's radius in miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -229,7 +163,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 // ===============================
 // Error Popup Utility
 // ===============================
-
 function showErrorPopup(message) {
     const popup = document.createElement('div');
     popup.className = 'error-popup';
@@ -245,7 +178,6 @@ function showErrorPopup(message) {
 // ===============================
 // URL Parameter Utilities
 // ===============================
-
 function getUrlParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
@@ -260,7 +192,6 @@ function setUrlParam(name, value) {
 // ===============================
 // Mobile Navigation
 // ===============================
-
 function initMobileNavigation() {
     const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
     const mobileNavClose = document.querySelector('.mobile-nav-close');
