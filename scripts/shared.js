@@ -13,48 +13,69 @@ window.filteredHospitalData = null;
 async function loadHospitalData() {
     try {
         if (window.hospitalData) {
-            return window.hospitalData; // Already loaded
+            console.log("Hospital data already loaded:", window.hospitalData.length, "records");
+            return window.hospitalData;
         }
 
-        const response = await fetch('./data/2025/2025_GW_HospitalScores.json');
-        const rawData = await response.json();
+        console.log("Starting to load hospital data...");
         
-        // Extract the array from Sheet1 property - THIS WAS THE MAIN FIX
-        const hospitalArray = rawData.Sheet1 || [];
+        const response = await fetch('data/2025/2025_GW_HospitalScores.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const rawData = await response.json();
+        console.log("Raw JSON data loaded:", rawData);
+        
+        // Check if Sheet1 exists and is an array
+        if (!rawData.Sheet1 || !Array.isArray(rawData.Sheet1)) {
+            console.error("Sheet1 not found or not an array in JSON data");
+            console.log("Available keys in rawData:", Object.keys(rawData));
+            return [];
+        }
+        
+        console.log("Sheet1 array found with", rawData.Sheet1.length, "items");
         
         // Transform the data to match expected property names
-        window.hospitalData = hospitalArray.map(hospital => ({
-            RECORD_ID: hospital.Hospital_ID,
-            Name: hospital.Hospital_Name,
-            Address: hospital.Street_Address,
-            City: hospital.City,
-            State: hospital.State,
-            Zip: hospital.ZIP_Code,
-            County: hospital.County,
-            Latitude: hospital.Latitude,
-            Longitude: hospital.Longitude,
-            TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
-            TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating || hospital['Financial Transparency Institutional Health_Category_Rating']),
-            TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating || hospital['Community Benefit Spending_Category_Rating']),
-            TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating || hospital['Healthcare Affordability Billing_Category_Rating']),
-            TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating || hospital['Healthcare Access & Social Rresponsibility _Category_Rating']),
-            TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
-            TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
-            TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
-            TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
-            TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
-            TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
-            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' || hospital.Care_Level === 'Regional Referral' || hospital.Care_Level === 'Specialty' ? 1 : 0,
-            Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
-            HOSPITAL_SYSTEM: hospital.In_System === 1,
-            _original: hospital
-        }));
+        window.hospitalData = rawData.Sheet1.map((hospital, index) => {
+            console.log(`Processing hospital ${index + 1}:`, hospital.Hospital_Name);
+            
+            return {
+                RECORD_ID: hospital.Hospital_ID,
+                Name: hospital.Hospital_Name,
+                Address: hospital.Street_Address,
+                City: hospital.City,
+                State: hospital.State,
+                Zip: hospital.ZIP_Code,
+                County: hospital.County,
+                Latitude: hospital.Latitude,
+                Longitude: hospital.Longitude,
+                TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
+                TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating || hospital['Financial Transparency Institutional Health_Category_Rating']),
+                TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating || hospital['Community Benefit Spending_Category_Rating']),
+                TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating || hospital['Healthcare Affordability Billing_Category_Rating']),
+                TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating || hospital['Healthcare Access & Social Rresponsibility _Category_Rating']),
+                TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
+                TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
+                TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
+                TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
+                TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
+                TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
+                TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' || hospital.Care_Level === 'Regional Referral' || hospital.Care_Level === 'Specialty' ? 1 : 0,
+                Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
+                HOSPITAL_SYSTEM: hospital.In_System === 1,
+                _original: hospital
+            };
+        });
 
         window.filteredHospitalData = [...window.hospitalData];
-        console.log("Hospital data loaded:", window.hospitalData.length, "records");
+        console.log("Hospital data transformation complete:", window.hospitalData.length, "records");
+        console.log("Sample hospital:", window.hospitalData[0]);
         return window.hospitalData;
     } catch (err) {
         console.error("Error loading hospital data:", err);
+        showErrorPopup('Failed to load hospital data. Please check the console for details.');
         return [];
     }
 }
