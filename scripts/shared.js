@@ -16,7 +16,7 @@ async function loadHospitalData() {
             return window.hospitalData; // Already loaded
         }
 
-        const response = await fetch('2025_GW_HospitalScores.json');
+        const response = await fetch('./data/2025/2025_GW_HospitalScores.json');
         const rawData = await response.json();
         
         // Extract the array from Sheet1 property - THIS WAS THE MAIN FIX
