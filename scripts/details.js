@@ -12,23 +12,22 @@ async function initDetailsPage() {
     try {
         // Load hospital data first
         await loadHospitalData();
-        
+
         // Get hospital ID from URL
         const hospitalId = getUrlParam('id');
         if (!hospitalId) {
             showErrorPopup('No hospital specified.');
             return;
         }
-        
+
         // Find and display hospital details
         const hospital = window.hospitalData.find(h => String(h.RECORD_ID) === String(hospitalId));
         if (!hospital) {
             showErrorPopup('Hospital not found.');
             return;
         }
-        
+
         displayHospitalDetails(hospital);
-        
     } catch (error) {
         console.error('Error initializing details page:', error);
         showErrorPopup('Failed to load hospital details.');
@@ -50,7 +49,8 @@ function displayHospitalDetails(hospital) {
                 s: "Small",
                 m: "Medium",
                 l: "Large",
-                xl: "Extra Large"
+                xl: "Extra Large",
+                xxl: "Extra Extra Large"
             };
             const sizeKey = String(hospital.Size || "").toLowerCase().trim();
             return sizeMap[sizeKey] || "---";
@@ -78,7 +78,7 @@ function displayHospitalDetails(hospital) {
             if (hospital.TYPE_rural) return "Rural";
             return "---";
         })(),
-        hospitalBeds: "---" // dataset doesn't contain numeric beds; size used instead
+        hospitalBeds: hospital._original?.Bed_Size || hospital.Bed_Size || "---" // Get bed size from JSON
     };
 
     // Apply infoMap values to page
@@ -134,10 +134,10 @@ function displayHospitalDetails(hospital) {
     if (mapDiv) {
         let lat = parseFloat(hospital.Latitude);
         let lon = parseFloat(hospital.Longitude);
-        if (!lat || !lon) {
-            const coords = getZipCoords(hospital.Zip);
-            lat = coords[0];
-            lon = coords[1];
+
+        // If no coordinates, approximate from ZIP code
+        if ((!lat || !lon) && hospital.Zip) {
+            [lat, lon] = getZipCoords(hospital.Zip);
         }
 
         // Clear any existing map
