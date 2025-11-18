@@ -1,5 +1,5 @@
 // ===============================
-// Compare Page Functions
+// Compare Page Specific Functionality
 // ===============================
 
 let selectedHospitals = {
@@ -8,80 +8,40 @@ let selectedHospitals = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load hospital data first
-    loadHospitalData().then(() => {
-        initComparePage();
-    });
-
-    // Set up navigation
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            if (page === 'index') {
-                window.location.href = 'index.html';
-            } else if (page === 'methodology') {
-                window.location.href = 'methodology.html';
-            }
-        });
-    });
+    initComparePage();
 });
 
-async function loadHospitalData() {
+async function initComparePage() {
     try {
-        const response = await fetch('../data/2025/2025_GW_HospitalScores.json');
-        const rawData = await response.json();
+        // Load hospital data first
+        await loadHospitalData();
         
-        // Transform the data to match expected format
-        hospitalData = rawData.map(hospital => ({
-            RECORD_ID: hospital.Hospital_ID,
-            Name: hospital.Hospital_Name,
-            Address: hospital.Street_Address,
-            City: hospital.City,
-            State: hospital.State,
-            Zip: hospital.ZIP_Code,
-            County: hospital.County,
-            Latitude: hospital.Latitude,
-            Longitude: hospital.Longitude,
-            TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
-            TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
-            TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
-            TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
-            TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
-            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' ? 1 : 0,
-            Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
-            HOSPITAL_SYSTEM: hospital.In_System === 1,
-            TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
-            TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating),
-            TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating),
-            TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating),
-            TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating),
-            TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
-            _original: hospital
-        }));
+        // Initialize compare page
+        populateHospitalDropdowns();
+        initializeCompareEventListeners();
         
-    } catch (err) {
-        console.error("Error loading JSON:", err);
-        showErrorPopup('Error loading hospital data.');
+    } catch (error) {
+        console.error('Error initializing compare page:', error);
+        showErrorPopup('Failed to load hospital data.');
     }
-}
-
-function initComparePage() {
-    populateHospitalDropdowns();
-    initializeCompareEventListeners();
 }
 
 function populateHospitalDropdowns() {
     const hospital1Select = document.getElementById('hospital1Select');
     const hospital2Select = document.getElementById('hospital2Select');
 
+    if (!hospital1Select || !hospital2Select || !window.hospitalData) return;
+
     // Clear existing options except the first one
-    while (hospital1Select.options.length > 1) hospital1Select.remove(1);
-    while (hospital2Select.options.length > 1) hospital2Select.remove(1);
+    while (hospital1Select.options.length > 1) {
+        hospital1Select.remove(1);
+    }
+    while (hospital2Select.options.length > 1) {
+        hospital2Select.remove(1);
+    }
 
     // Sort hospitals by name for easier selection
-    const sortedHospitals = [...hospitalData].sort((a, b) => {
+    const sortedHospitals = [...window.hospitalData].sort((a, b) => {
         const nameA = a.Name || 'Unnamed Hospital';
         const nameB = b.Name || 'Unnamed Hospital';
         return nameA.localeCompare(nameB);
@@ -92,42 +52,59 @@ function populateHospitalDropdowns() {
         const name = hospital.Name || 'Unnamed Hospital';
         const location = `${hospital.City || ''}, ${hospital.State || ''}`;
         const optionText = `${name} - ${location}`;
-        
-        hospital1Select.add(new Option(optionText, hospital.RECORD_ID));
-        hospital2Select.add(new Option(optionText, hospital.RECORD_ID));
+        const option1 = new Option(optionText, hospital.RECORD_ID);
+        const option2 = new Option(optionText, hospital.RECORD_ID);
+        hospital1Select.add(option1);
+        hospital2Select.add(option2);
     });
 }
 
 function initializeCompareEventListeners() {
     // Dropdown change events
-    document.getElementById('hospital1Select').addEventListener('change', (e) => {
-        const hospitalId = e.target.value;
-        if (hospitalId) {
-            const hospital = hospitalData.find(h => h.RECORD_ID == hospitalId);
-            selectHospital(hospital, 'hospital1');
-        } else {
-            clearHospitalSelection('hospital1');
-        }
-    });
+    const hospital1Select = document.getElementById('hospital1Select');
+    const hospital2Select = document.getElementById('hospital2Select');
 
-    document.getElementById('hospital2Select').addEventListener('change', (e) => {
-        const hospitalId = e.target.value;
-        if (hospitalId) {
-            const hospital = hospitalData.find(h => h.RECORD_ID == hospitalId);
-            selectHospital(hospital, 'hospital2');
-        } else {
-            clearHospitalSelection('hospital2');
-        }
-    });
+    if (hospital1Select) {
+        hospital1Select.addEventListener('change', (e) => {
+            const hospitalId = e.target.value;
+            if (hospitalId) {
+                const hospital = window.hospitalData.find(h => h.RECORD_ID == hospitalId);
+                selectHospital(hospital, 'hospital1');
+            } else {
+                clearHospitalSelection('hospital1');
+            }
+        });
+    }
+
+    if (hospital2Select) {
+        hospital2Select.addEventListener('change', (e) => {
+            const hospitalId = e.target.value;
+            if (hospitalId) {
+                const hospital = window.hospitalData.find(h => h.RECORD_ID == hospitalId);
+                selectHospital(hospital, 'hospital2');
+            } else {
+                clearHospitalSelection('hospital2');
+            }
+        });
+    }
 
     // Compare button
-    document.getElementById('compareNowBtn').addEventListener('click', compareHospitals);
+    const compareNowBtn = document.getElementById('compareNowBtn');
+    if (compareNowBtn) {
+        compareNowBtn.addEventListener('click', compareHospitals);
+    }
 
     // Clear selection
-    document.getElementById('clearSelectionBtn').addEventListener('click', clearSelection);
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', clearSelection);
+    }
 
     // Back to selection
-    document.getElementById('backToSelectionBtn').addEventListener('click', backToSelection);
+    const backToSelectionBtn = document.getElementById('backToSelectionBtn');
+    if (backToSelectionBtn) {
+        backToSelectionBtn.addEventListener('click', backToSelection);
+    }
 
     // Category toggles
     document.querySelectorAll('.category-header').forEach(header => {
@@ -144,13 +121,17 @@ function selectHospital(hospital, slot) {
 function clearHospitalSelection(slot) {
     selectedHospitals[slot] = null;
     const container = document.getElementById(`selected${slot.charAt(0).toUpperCase() + slot.slice(1)}`);
-    container.innerHTML = '<p class="placeholder">No hospital selected</p>';
-    container.classList.remove('hospital-selected');
+    if (container) {
+        container.innerHTML = '<p class="placeholder">No hospital selected</p>';
+        container.classList.remove('hospital-selected');
+    }
     updateCompareButton();
 }
 
 function updateSelectedHospitalDisplay(hospital, slot) {
     const container = document.getElementById(`selected${slot.charAt(0).toUpperCase() + slot.slice(1)}`);
+    if (!container) return;
+
     const grade = hospital.TIER_1_GRADE_Lown_Composite || 'N/A';
     const stars = convertGradeToStars(grade);
 
@@ -169,6 +150,8 @@ function updateSelectedHospitalDisplay(hospital, slot) {
 
 function updateCompareButton() {
     const compareBtn = document.getElementById('compareNowBtn');
+    if (!compareBtn) return;
+
     const hasBothHospitals = selectedHospitals.hospital1 && selectedHospitals.hospital2;
     compareBtn.disabled = !hasBothHospitals;
 }
@@ -178,14 +161,21 @@ function clearSelection() {
     selectedHospitals.hospital2 = null;
 
     // Reset displays
-    document.getElementById('selectedHospital1').innerHTML = '<p class="placeholder">No hospital selected</p>';
-    document.getElementById('selectedHospital2').innerHTML = '<p class="placeholder">No hospital selected</p>';
-    document.getElementById('selectedHospital1').classList.remove('hospital-selected');
-    document.getElementById('selectedHospital2').classList.remove('hospital-selected');
+    const selectedHospital1 = document.getElementById('selectedHospital1');
+    const selectedHospital2 = document.getElementById('selectedHospital2');
+    const hospital1Select = document.getElementById('hospital1Select');
+    const hospital2Select = document.getElementById('hospital2Select');
 
-    // Reset dropdowns
-    document.getElementById('hospital1Select').value = '';
-    document.getElementById('hospital2Select').value = '';
+    if (selectedHospital1) {
+        selectedHospital1.innerHTML = '<p class="placeholder">No hospital selected</p>';
+        selectedHospital1.classList.remove('hospital-selected');
+    }
+    if (selectedHospital2) {
+        selectedHospital2.innerHTML = '<p class="placeholder">No hospital selected</p>';
+        selectedHospital2.classList.remove('hospital-selected');
+    }
+    if (hospital1Select) hospital1Select.value = '';
+    if (hospital2Select) hospital2Select.value = '';
 
     updateCompareButton();
     backToSelection();
@@ -195,16 +185,22 @@ function compareHospitals() {
     if (!selectedHospitals.hospital1 || !selectedHospitals.hospital2) return;
 
     // Hide selection section, show results
-    document.querySelector('.selection-section').style.display = 'none';
-    document.getElementById('comparisonResults').style.display = 'block';
+    const selectionSection = document.querySelector('.selection-section');
+    const comparisonResults = document.getElementById('comparisonResults');
+    
+    if (selectionSection) selectionSection.style.display = 'none';
+    if (comparisonResults) comparisonResults.style.display = 'block';
 
     // Populate comparison
     populateComparison();
 }
 
 function backToSelection() {
-    document.querySelector('.selection-section').style.display = 'block';
-    document.getElementById('comparisonResults').style.display = 'none';
+    const selectionSection = document.querySelector('.selection-section');
+    const comparisonResults = document.getElementById('comparisonResults');
+    
+    if (selectionSection) selectionSection.style.display = 'block';
+    if (comparisonResults) comparisonResults.style.display = 'none';
 }
 
 function toggleCategory(event) {
@@ -216,6 +212,8 @@ function toggleCategory(event) {
 
 function populateComparison() {
     const comparisonGrid = document.getElementById('comparisonGrid');
+    if (!comparisonGrid) return;
+
     comparisonGrid.innerHTML = '';
 
     // Define comparison categories and metrics
@@ -236,21 +234,21 @@ function populateComparison() {
             ]
         },
         {
-            name: 'Community Benefit Spending', 
+            name: 'Community Benefit Spending',
             metrics: [
-                { key: 'TIER_2_GRADE_Civic', label: 'Civic Leadership Grade' }
+                { key: 'TIER_2_GRADE_Civic', label: 'Community Benefit Grade' }
             ]
         },
         {
             name: 'Healthcare Affordability & Billing',
             metrics: [
-                { key: 'TIER_3_GRADE_Pat_Exp', label: 'Patient Experience Grade' }
+                { key: 'TIER_3_GRADE_Pat_Saf', label: 'Cost Effectiveness Grade' }
             ]
         },
         {
             name: 'Healthcare Access & Social Responsibility',
             metrics: [
-                { key: 'TIER_3_GRADE_Pat_Saf', label: 'Patient Safety Grade' }
+                { key: 'TIER_3_GRADE_Pat_Exp', label: 'Inclusivity Grade' }
             ]
         },
         {
@@ -280,7 +278,7 @@ function createCategoryElement(category) {
 
     const content = document.createElement('div');
     content.className = 'category-content active';
-    
+
     const metricsGrid = document.createElement('div');
     metricsGrid.className = 'metrics-grid';
 
@@ -333,6 +331,8 @@ function createMetricRow(metric) {
 }
 
 function getFormattedValue(hospital, metric) {
+    if (!hospital) return 'N/A';
+    
     const value = hospital[metric.key];
     if (metric.format) {
         return metric.format(value);
