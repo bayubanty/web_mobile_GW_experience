@@ -15,7 +15,7 @@ async function loadHospitalData() {
             return window.hospitalData; // Already loaded
         }
 
-        const response = await fetch('data/2025/2025_GW_HospitalScores.json');
+        const response = await fetch('2025_GW_HospitalScores.json');
         const rawData = await response.json();
 
         // Transform the data to match expected property names
