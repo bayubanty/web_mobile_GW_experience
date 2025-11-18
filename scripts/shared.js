@@ -9,17 +9,26 @@ window.filteredHospitalData = null;
 // ===============================
 // Data Loading
 // ===============================
+
 async function loadHospitalData() {
     try {
         if (window.hospitalData) {
-            return window.hospitalData; // Already loaded
+            return window.hospitalData;
         }
 
-        const response = await fetch('2025_GW_HospitalScores.json');
-        const rawData = await response.json();
+        console.log("Loading hospital data...");
+        
+        const response = await fetch('data/2025/2025_GW_HospitalScores.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const hospitalArray = await response.json();
+        console.log("JSON loaded successfully:", hospitalArray.length, "hospitals");
 
         // Transform the data to match expected property names
-        window.hospitalData = rawData.map(hospital => ({
+        window.hospitalData = hospitalArray.map(hospital => ({
             RECORD_ID: hospital.Hospital_ID,
             Name: hospital.Hospital_Name,
             Address: hospital.Street_Address,
@@ -40,18 +49,19 @@ async function loadHospitalData() {
             TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
             TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
             TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
-            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' ? 1 : 0,
+            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' || hospital.Care_Level === 'Regional Referral' || hospital.Care_Level === 'Specialty' ? 1 : 0,
             Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
+            Bed_Size: hospital.Bed_Size, // Preserve bed size
             HOSPITAL_SYSTEM: hospital.In_System === 1,
             _original: hospital
         }));
 
         window.filteredHospitalData = [...window.hospitalData];
-        console.log("Hospital data loaded:", window.hospitalData.length, "records");
-        
+        console.log("Hospital data transformed:", window.hospitalData.length, "records");
         return window.hospitalData;
     } catch (err) {
         console.error("Error loading hospital data:", err);
+        showErrorPopup('Failed to load hospital data. Please check the console.');
         return [];
     }
 }
@@ -59,15 +69,18 @@ async function loadHospitalData() {
 // Helper function to convert 1-5 ratings to A-F grades
 function convertRatingToGrade(rating) {
     if (!rating || rating === 'N/A') return 'N/A';
+    
     const gradeMap = {
         5: 'A', 4: 'B', 3: 'C', 2: 'D', 1: 'F'
     };
+    
     return gradeMap[rating] || 'N/A';
 }
 
 // ===============================
 // Star Rating Utilities
 // ===============================
+
 function convertGradeToStars(grade) {
     const gradeMap = {
         'A+': 5, 'A': 5, 'A-': 4.5,
@@ -76,6 +89,7 @@ function convertGradeToStars(grade) {
         'D+': 2.5, 'D': 2, 'D-': 1.5,
         'F': 1, 'N/A': 0
     };
+    
     const value = gradeMap[grade] || 0;
     return { value };
 }
@@ -96,37 +110,38 @@ function renderStars(value) {
 
 function fullStarSVG() {
     return `
-        <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star full" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function halfStarSVG() {
     return `
-        <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
-            <defs>
-                <linearGradient id="halfGradient" x1="0" x2="1">
-                    <stop offset="50%" stop-color="#f48810" />
-                    <stop offset="50%" stop-color="#a4cc95" />
-                </linearGradient>
-            </defs>
-            <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star half" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+            <linearGradient id="halfGradient" x1="0" x2="1">
+                <stop offset="50%" stop-color="#f48810" />
+                <stop offset="50%" stop-color="#a4cc95" />
+            </linearGradient>
+        </defs>
+        <path fill="url(#halfGradient)" d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 function emptyStarSVG() {
     return `
-        <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
-        </svg>
+    <svg class="star empty" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .587l3.668 7.431L24 9.748l-6 5.848 1.416 8.26L12 19.896l-7.416 3.96L6 15.596 0 9.748l8.332-1.73z"/>
+    </svg>
     `;
 }
 
 // ===============================
 // ZIP-Based Coordinate Approximation
 // ===============================
+
 function getZipCoords(zip) {
     const lookup = {
         '31513': [33.54609, -82.3163154],
@@ -184,6 +199,7 @@ function getZipCoords(zip) {
 // ===============================
 // Distance Calculation
 // ===============================
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 3959; // Earth's radius in miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -199,6 +215,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 // ===============================
 // Error Popup Utility
 // ===============================
+
 function showErrorPopup(message) {
     const popup = document.createElement('div');
     popup.className = 'error-popup';
@@ -214,6 +231,7 @@ function showErrorPopup(message) {
 // ===============================
 // URL Parameter Utilities
 // ===============================
+
 function getUrlParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
@@ -228,6 +246,7 @@ function setUrlParam(name, value) {
 // ===============================
 // Mobile Navigation
 // ===============================
+
 function initMobileNavigation() {
     const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
     const mobileNavClose = document.querySelector('.mobile-nav-close');
