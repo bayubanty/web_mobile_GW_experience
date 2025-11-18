@@ -1,76 +1,41 @@
 // ===============================
-// Hospital Details Page Logic
+// Details Page Specific Functionality
 // ===============================
 
 let detailMap = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load hospital data first
-    loadHospitalData().then(() => {
-        // Get hospital ID from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const hospitalId = urlParams.get('id');
-        
-        if (hospitalId) {
-            showHospitalDetails(hospitalId);
-        } else {
-            showErrorPopup('No hospital ID specified.');
-        }
-    });
-
-    // Set up back button
-    document.getElementById('backToResults')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = 'index.html';
-    });
+    initDetailsPage();
 });
 
-async function loadHospitalData() {
+async function initDetailsPage() {
     try {
-        const response = await fetch('../data/2025/2025_GW_HospitalScores.json');
-        const rawData = await response.json();
+        // Load hospital data first
+        await loadHospitalData();
         
-        // Transform the data to match expected format
-        hospitalData = rawData.map(hospital => ({
-            RECORD_ID: hospital.Hospital_ID,
-            Name: hospital.Hospital_Name,
-            Address: hospital.Street_Address,
-            City: hospital.City,
-            State: hospital.State,
-            Zip: hospital.ZIP_Code,
-            County: hospital.County,
-            Latitude: hospital.Latitude,
-            Longitude: hospital.Longitude,
-            TYPE_urban: hospital.Urban_Rural === 'Urban' ? 1 : 0,
-            TYPE_rural: hospital.Urban_Rural === 'Rural' ? 1 : 0,
-            TYPE_NonProfit: hospital.Ownership_Type === 'Nonprofit' ? 1 : 0,
-            TYPE_ForProfit: hospital.Ownership_Type === 'For Profit' ? 1 : 0,
-            TYPE_HospTyp_CAH: hospital.Care_Level === 'Primary' ? 1 : 0,
-            TYPE_HospTyp_ACH: hospital.Care_Level === 'Acute Care' ? 1 : 0,
-            Size: hospital.Size_Group ? hospital.Size_Group.toLowerCase() : 'm',
-            HOSPITAL_SYSTEM: hospital.In_System === 1,
-            TIER_1_GRADE_Lown_Composite: convertRatingToGrade(hospital.Overall_Star_Rating),
-            TIER_2_GRADE_Outcome: convertRatingToGrade(hospital.FTIH_Category_Rating),
-            TIER_2_GRADE_Value: convertRatingToGrade(hospital.CBS_Category_Rating),
-            TIER_2_GRADE_Civic: convertRatingToGrade(hospital.HAB_Category_Rating),
-            TIER_3_GRADE_Pat_Saf: convertRatingToGrade(hospital.HASR_Category_Rating),
-            TIER_3_GRADE_Pat_Exp: convertRatingToGrade(hospital.Overall_Star_Rating),
-            _original: hospital
-        }));
+        // Get hospital ID from URL
+        const hospitalId = getUrlParam('id');
+        if (!hospitalId) {
+            showErrorPopup('No hospital specified.');
+            return;
+        }
         
-    } catch (err) {
-        console.error("Error loading JSON:", err);
-        showErrorPopup('Error loading hospital data.');
+        // Find and display hospital details
+        const hospital = window.hospitalData.find(h => String(h.RECORD_ID) === String(hospitalId));
+        if (!hospital) {
+            showErrorPopup('Hospital not found.');
+            return;
+        }
+        
+        displayHospitalDetails(hospital);
+        
+    } catch (error) {
+        console.error('Error initializing details page:', error);
+        showErrorPopup('Failed to load hospital details.');
     }
 }
 
-function showHospitalDetails(hospitalId) {
-    const hospital = hospitalData.find(h => String(h.RECORD_ID) === String(hospitalId));
-    if (!hospital) {
-        showErrorPopup('Hospital details not found.');
-        return;
-    }
-
+function displayHospitalDetails(hospital) {
     // Populate hospital details
     document.getElementById('hospitalName').textContent = hospital.Name || 'Unnamed Hospital';
     document.getElementById('streetLine').textContent = hospital.Address || '---';
@@ -82,11 +47,10 @@ function showHospitalDetails(hospitalId) {
         hospitalSize: (() => {
             const sizeMap = {
                 xs: "Extra Small",
-                s: "Small", 
+                s: "Small",
                 m: "Medium",
                 l: "Large",
-                xl: "Extra Large",
-                xxl: "Extra Large"
+                xl: "Extra Large"
             };
             const sizeKey = String(hospital.Size || "").toLowerCase().trim();
             return sizeMap[sizeKey] || "---";
@@ -95,13 +59,17 @@ function showHospitalDetails(hospitalId) {
             const types = [];
             if (hospital.TYPE_HospTyp_ACH) types.push("Acute Care Hospital");
             if (hospital.TYPE_HospTyp_CAH) types.push("Critical Access Hospital");
-            if (hospital.TYPE_NonProfit) types.push("Nonprofit");
+            if (hospital.TYPE_AMC) types.push("Academic Medical Center");
             if (hospital.TYPE_ForProfit) types.push("For-Profit");
+            if (hospital.TYPE_NonProfit) types.push("Nonprofit");
+            if (hospital.TYPE_chrch_affl_f) types.push("Faith-Affiliated");
+            if (hospital.TYPE_isSafetyNet) types.push("Safety Net Hospital");
             return types.length ? types.join(", ") : "---";
         })(),
         hospitalCareLevel: (() => {
             if (hospital.TYPE_HospTyp_CAH) return "Critical Access";
             if (hospital.TYPE_HospTyp_ACH) return "Acute Care";
+            if (hospital.TYPE_AMC) return "Academic / Teaching";
             return "---";
         })(),
         hospitalSystem: hospital.HOSPITAL_SYSTEM ? "Part of a Health System" : "Independent",
@@ -110,7 +78,7 @@ function showHospitalDetails(hospitalId) {
             if (hospital.TYPE_rural) return "Rural";
             return "---";
         })(),
-        hospitalBeds: hospital._original?.Bed_Size ? hospital._original.Bed_Size.toString() : "---"
+        hospitalBeds: "---" // dataset doesn't contain numeric beds; size used instead
     };
 
     // Apply infoMap values to page
@@ -122,23 +90,23 @@ function showHospitalDetails(hospitalId) {
     // Services
     const list = document.getElementById('hospitalServices');
     list.innerHTML = '';
-    
+
     // Default fallback list if dataset has no service info
     let services = [
         "Behavioral Health",
-        "Cardiology", 
+        "Cardiology",
         "Emergency Care",
         "Imaging & Radiology",
         "Maternity & Neonatal ICU",
         "Oncology",
         "Orthopedics",
         "Outpatient Surgery",
-        "Pediatric Services", 
+        "Pediatric Services",
         "Pharmacy",
         "Physical Therapy",
         "Rehabilitation"
     ];
-    
+
     list.innerHTML = services.map(s => `<li>${s}</li>`).join('');
 
     // Overall Grade
@@ -151,9 +119,9 @@ function showHospitalDetails(hospitalId) {
     // Category-level stars
     const categoryMap = {
         financialTransparencyStars: hospital.TIER_2_GRADE_Value || "N/A",
-        communityBenefitStars: hospital.TIER_2_GRADE_Civic || "N/A", 
-        affordabilityBillingStars: hospital.TIER_3_GRADE_Pat_Exp || "N/A",
-        accessResponsibilityStars: hospital.TIER_3_GRADE_Pat_Saf || "N/A"
+        communityBenefitStars: hospital.TIER_2_GRADE_Civic || "N/A",
+        affordabilityBillingStars: hospital.TIER_3_GRADE_Pat_Saf || "N/A",
+        accessResponsibilityStars: hospital.TIER_3_GRADE_Pat_Exp || "N/A"
     };
 
     for (const [id, grade] of Object.entries(categoryMap)) {
@@ -161,38 +129,32 @@ function showHospitalDetails(hospitalId) {
         if (el) el.innerHTML = renderStars(convertGradeToStars(grade).value);
     }
 
-    // Initialize map
-    initDetailMap(hospital);
-}
-
-function initDetailMap(hospital) {
+    // Map
     const mapDiv = document.getElementById('leafletMap');
-    if (!mapDiv) return;
+    if (mapDiv) {
+        let lat = parseFloat(hospital.Latitude);
+        let lon = parseFloat(hospital.Longitude);
+        if (!lat || !lon) {
+            const coords = getZipCoords(hospital.Zip);
+            lat = coords[0];
+            lon = coords[1];
+        }
 
-    let lat = parseFloat(hospital.Latitude);
-    let lon = parseFloat(hospital.Longitude);
-    
-    if (!lat || !lon) {
-        const coords = getZipCoords(hospital.Zip);
-        lat = coords[0];
-        lon = coords[1];
-    }
+        // Clear any existing map
+        if (detailMap) {
+            detailMap.remove();
+        }
 
-    // Clear any existing map
-    if (detailMap) {
-        detailMap.remove();
-    }
+        detailMap = L.map('leafletMap').setView([lat, lon], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(detailMap);
 
-    detailMap = L.map('leafletMap').setView([lat, lon], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
-    }).addTo(detailMap);
-    
-    L.marker([lat, lon]).addTo(detailMap).bindPopup(hospital.Name || 'Unnamed Hospital');
-    
-    // Google Maps link
-    const gmapsLink = document.getElementById("gmapsLink");
-    if (gmapsLink) {
-        gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+        L.marker([lat, lon]).addTo(detailMap).bindPopup(hospital.Name || 'Unnamed Hospital');
+
+        const gmapsLink = document.getElementById("gmapsLink");
+        if (gmapsLink) {
+            gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+        }
     }
 }
