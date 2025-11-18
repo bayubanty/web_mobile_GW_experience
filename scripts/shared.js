@@ -18,6 +18,7 @@ async function loadHospitalData() {
 
         console.log("Loading hospital data...");
         
+        // NEW PATH: Direct file in same directory
         const response = await fetch('2025_GW_HospitalScores.json');
         
         if (!response.ok) {
