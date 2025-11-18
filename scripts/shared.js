@@ -18,7 +18,7 @@ async function loadHospitalData() {
 
         console.log("Loading hospital data...");
         
-        const response = await fetch('/2025_GW_HospitalScores.json');
+        const response = await fetch('2025_GW_HospitalScores.json');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
